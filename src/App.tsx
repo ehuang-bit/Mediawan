@@ -23,6 +23,7 @@ import { BacktestingView } from './components/BacktestingView';
 import { CsvImportModal } from './components/CsvImportModal';
 import { ApiManagerModal } from './components/ApiManagerModal';
 import { QuickGuideModal } from './components/QuickGuideModal';
+import { MobileNav } from './components/MobileNav';
 
 const STORAGE_KEYS = {
   TRENDS: 'mediawan_radar_trends_v7',
@@ -521,27 +522,31 @@ export const App: React.FC = () => {
     [apiConnectors]
   );
 
+  const goToView = (view: ActiveMainView) => {
+    setActiveView(view);
+    mainScrollRef.current?.scrollTo({ top: 0 });
+  };
+
+  const goToRadar = () => {
+    if (filters.categoryTab === 'Past Trends') {
+      handleUpdateFilters({ categoryTab: 'All Signals' });
+    }
+    goToView('radar');
+  };
+
+  const goToPastTrends = () => {
+    handleUpdateFilters({ categoryTab: 'Past Trends', maturity: 'All' });
+    goToView('radar');
+  };
+
   return (
-    <div className="min-h-screen h-screen flex bg-[#FBF9F4] dark:bg-[#24221F] text-[#22201D] dark:text-[#F5F2EC] overflow-hidden transition-colors">
+    <div className="h-dvh flex bg-soft text-ink overflow-hidden transition-colors">
       <Sidebar
         activeView={activeView}
         isPastTabActive={filters.categoryTab === 'Past Trends'}
-        onSelectRadar={() => {
-          setActiveView('radar');
-          if (filters.categoryTab === 'Past Trends') {
-            handleUpdateFilters({ categoryTab: 'All Signals' });
-          }
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
-        onSelectPastTrends={() => {
-          setActiveView('radar');
-          handleUpdateFilters({ categoryTab: 'Past Trends', maturity: 'All' });
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
-        onSelectView={(v) => {
-          setActiveView(v);
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
+        onSelectRadar={goToRadar}
+        onSelectPastTrends={goToPastTrends}
+        onSelectView={goToView}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         activeSignalsCount={activeSignalsCount}
@@ -614,6 +619,18 @@ export const App: React.FC = () => {
 
           {activeView === 'backtesting' && <BacktestingView lang={lang} />}
         </main>
+
+        <MobileNav
+          activeView={activeView}
+          isPastTabActive={filters.categoryTab === 'Past Trends'}
+          onSelectRadar={goToRadar}
+          onSelectPastTrends={goToPastTrends}
+          onSelectView={goToView}
+          onOpenApiManager={() => setApiModalOpen(true)}
+          onOpenQuickGuide={() => setQuickGuideOpen(true)}
+          onResetDemoData={handleResetDemoData}
+          lang={lang}
+        />
       </div>
 
       <GreenlightDrawer
@@ -677,9 +694,9 @@ export const App: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] text-[12.5px] font-semibold shadow-elevated animate-modal-in"
+          className="fixed bottom-24 md:bottom-5 right-4 md:right-5 max-w-[calc(100vw-2rem)] z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-pop text-on-pop text-[12.5px] font-semibold shadow-elevated animate-modal-in"
         >
-          <CheckCircle2 className="w-4 h-4 text-[#DCFCE7] dark:text-[#191815] shrink-0" />
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}

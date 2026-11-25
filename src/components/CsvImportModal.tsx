@@ -12,6 +12,8 @@ import { parseSignalsCsv, SAMPLE_CSV_TEMPLATE } from '../utils/csvParser';
 import { downloadTextFile } from '../utils/exportMarkdown';
 import { CertaintyBadge, CategoryTag, MaturityBadge } from './SemanticBadges';
 
+import { tr } from '../i18n';
+
 interface CsvImportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -75,22 +77,22 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#22201D]/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="csv-modal-title"
-        className="w-full max-w-[660px] rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-elevated overflow-hidden animate-modal-in"
+        className="w-full max-w-[660px] rounded-[20px] bg-surface border border-line shadow-elevated overflow-hidden animate-modal-in"
       >
-        <div className="px-6 py-4.5 border-b border-[#EAE4D9] dark:border-[#3E3B35] bg-[#FBF9F4] dark:bg-[#24221F] flex items-center justify-between">
+        <div className="px-6 py-4.5 border-b border-line bg-soft flex items-center justify-between">
           <div>
             <h2
               id="csv-modal-title"
-              className="font-display text-[16px] font-bold text-[#22201D] dark:text-[#F5F2EC]"
+              className="font-display text-[16px] font-bold text-ink"
             >
               {isFr ? 'Importer des signaux (.csv)' : 'Import trends (.csv)'}
             </h2>
-            <p className="text-[12px] text-[#625C53] dark:text-[#B5AFA4] mt-0.5">
+            <p className="text-[12px] text-ink-2 mt-0.5">
               {isFr
                 ? 'Les scores sont calculés automatiquement sous fenêtre ≤21 jours.'
                 : 'Scores are calculated automatically inside the ≤21-day window.'}
@@ -99,27 +101,27 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
-            className="p-1.5 rounded-full text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9] dark:hover:bg-[#383632] transition-colors"
+            aria-label={tr('Close modal', lang)}
+            className="p-1.5 rounded-full text-ink-2 hover:text-ink hover:bg-line transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-6 space-y-5 max-h-[76vh] overflow-y-auto">
-          <div className="p-4 rounded-[14px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 rounded-[14px] bg-soft border border-line flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <FileSpreadsheet
-                className="w-5 h-5 text-[#1F6F43] dark:text-[#81B64C] shrink-0"
+                className="w-5 h-5 text-accent shrink-0"
                 strokeWidth={1.75}
               />
               <div>
-                <div className="text-[13px] font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                <div className="text-[13px] font-medium text-ink">
                   {isFr
                     ? '1. Modèle CSV exemple (3 tendances)'
                     : '1. Sample CSV template (3 trends)'}
                 </div>
-                <div className="text-[12px] text-[#625C53] dark:text-[#B5AFA4]">
+                <div className="text-[12px] text-ink-2">
                   {isFr
                     ? 'Téléchargez pour éditer ou prévisualisez directement'
                     : 'Download to edit or preview immediately'}
@@ -130,7 +132,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-[#FFFFFF] dark:bg-[#2E2C28] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-surface hover:bg-canvas text-ink border border-line transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>{isFr ? 'Télécharger' : 'Download'}</span>
@@ -143,7 +145,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                     'mediawan-radar-signal-template.csv'
                   )
                 }
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-[#EBF5EE] dark:bg-[#263628] hover:bg-[#DCECE1] dark:hover:bg-[#314734] text-[#1F6F43] dark:text-[#81B64C] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-accent-soft hover:bg-accent-soft text-accent transition-colors"
               >
                 <span>{isFr ? 'Prévisualiser' : 'Preview rows'}</span>
               </button>
@@ -153,7 +155,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
           <div>
             <label
               htmlFor="csv-file-upload"
-              className="block text-[12px] font-medium text-[#22201D] dark:text-[#F5F2EC] mb-2"
+              className="block text-[12px] font-medium text-ink mb-2"
             >
               {isFr ? '2. Déposer ou choisir un fichier ' : '2. Upload or drop '}
               <code className="font-mono">.csv</code>
@@ -168,8 +170,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className={`cursor-pointer rounded-[14px] border border-dashed p-6 text-center transition-colors duration-150 ${
                 isDragging
-                  ? 'border-[#1F6F43] bg-[#EBF5EE] dark:bg-[#263628]'
-                  : 'border-[#D5CEC0] dark:border-[#494640] bg-[#FFFFFF] dark:bg-[#24221F] hover:bg-[#FBF9F4] dark:hover:bg-[#33302B]'
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-line bg-surface hover:bg-soft'
               }`}
             >
               <input
@@ -184,24 +186,24 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 }}
               />
               <Upload
-                className="w-5 h-5 text-[#625C53] dark:text-[#B5AFA4] mx-auto mb-2"
+                className="w-5 h-5 text-ink-2 mx-auto mb-2"
                 strokeWidth={1.75}
               />
-              <div className="text-[13px] font-medium text-[#22201D] dark:text-[#F5F2EC]">
+              <div className="text-[13px] font-medium text-ink">
                 {uploadedFileName
                   ? `${isFr ? 'Chargé :' : 'Loaded:'} ${uploadedFileName}`
                   : isFr
                   ? 'Glissez un fichier .csv ici ou cliquez pour parcourir'
                   : 'Drop a .csv file here or click to browse'}
               </div>
-              <div className="text-[11px] text-[#8E877D] mt-1 font-mono">
+              <div className="text-[11px] text-ink-3 mt-1 font-mono">
                 title, category, primary_platform, days_since_t0, velocity_7d_pct, creator_count_7d, view_sub_anomaly_x
               </div>
             </div>
           </div>
 
           {parseErrors.length > 0 && (
-            <div className="p-3 rounded-[12px] bg-[#FDF2F2] dark:bg-[#3A2727] border border-[#F3CFCF] dark:border-[#5D3838] text-[#991B1B] dark:text-[#F29C9C] text-[12px] space-y-1">
+            <div className="p-3 rounded-[12px] bg-danger-soft border border-danger-line text-danger text-[12px] space-y-1">
               {parseErrors.map((err, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -214,8 +216,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
           {parsedPreview.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-[#22201D] dark:text-[#F5F2EC] flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#1F6F43] dark:text-[#81B64C]" />
+                <span className="text-[12px] font-semibold text-ink flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-accent" />
                   <span>
                     {parsedPreview.length}{' '}
                     {isFr
@@ -229,27 +231,27 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 </span>
               </div>
 
-              <div className="rounded-[12px] border border-[#EAE4D9] dark:border-[#3E3B35] overflow-hidden divide-y divide-[#EAE4D9] dark:divide-[#3E3B35]">
+              <div className="rounded-[12px] border border-line overflow-hidden divide-y divide-line">
                 {parsedPreview.map((item) => (
                   <div
                     key={item.id}
-                    className="px-3.5 py-2.5 bg-[#FFFFFF] dark:bg-[#24221F] flex items-center justify-between gap-3"
+                    className="px-3.5 py-2.5 bg-surface flex items-center justify-between gap-3"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-medium text-[#22201D] dark:text-[#F5F2EC] truncate">
+                        <span className="text-[13px] font-medium text-ink truncate">
                           {item.title}
                         </span>
                         <CategoryTag category={item.category} lang={lang} />
                       </div>
-                      <div className="text-[11px] text-[#625C53] dark:text-[#B5AFA4] truncate mt-0.5 font-mono">
+                      <div className="text-[11px] text-ink-2 truncate mt-0.5 font-mono">
                         {item.viralVideo.creator.handle} · {item.daysSinceT0}d · +{item.velocity7d}%
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <MaturityBadge maturity={item.maturity} compact lang={lang} />
                       <CertaintyBadge certainty={item.certainty} lang={lang} />
-                      <span className="font-mono text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC] w-8 text-right">
+                      <span className="font-mono text-[13px] font-semibold text-ink w-8 text-right">
                         {item.emergenceScore}
                       </span>
                     </div>
@@ -260,11 +262,11 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
           )}
         </div>
 
-        <div className="px-6 py-3.5 bg-[#FBF9F4] dark:bg-[#24221F] border-t border-[#EAE4D9] dark:border-[#3E3B35] flex items-center justify-end gap-2.5">
+        <div className="px-6 py-3.5 bg-soft border-t border-line flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-full text-[13px] font-medium text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9] dark:hover:bg-[#383632] transition-colors"
+            className="px-4 py-1.5 rounded-full text-[13px] font-medium text-ink-2 hover:text-ink hover:bg-line transition-colors"
           >
             {isFr ? 'Annuler' : 'Cancel'}
           </button>
@@ -272,7 +274,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
             type="button"
             disabled={parsedPreview.length === 0}
             onClick={handleConfirmImport}
-            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] dark:hover:bg-[#93C75D] text-[#FFFFFF] dark:text-[#191815] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-pop hover:bg-pop-hover text-on-pop disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {isFr
               ? `Importer ${parsedPreview.length > 0 ? `${parsedPreview.length} signaux` : ''}`

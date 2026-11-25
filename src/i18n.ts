@@ -152,6 +152,14 @@ export const UI_COPY: Record<
     windowFilterLabel: string;
     certaintyFilterLabel: string;
     sortByLabel: string;
+    radarMapTitle: string;
+    radarMapHint: string;
+    tabRadar: string;
+    tabPast: string;
+    tabWatchlist: string;
+    tabTimeMachine: string;
+    tabMore: string;
+    mobileNavLabel: string;
   }
 > = {
   en: {
@@ -297,6 +305,14 @@ export const UI_COPY: Record<
     windowFilterLabel: 'Window',
     certaintyFilterLabel: 'Certainty',
     sortByLabel: 'Sort by',
+    radarMapTitle: 'Signal map',
+    radarMapHint: 'Closer to the centre = newer. Bigger dot = higher score. The number is the rank.',
+    tabRadar: 'Radar',
+    tabPast: 'Past',
+    tabWatchlist: 'Watchlist',
+    tabTimeMachine: 'History',
+    tabMore: 'More',
+    mobileNavLabel: 'Main navigation',
   },
   fr: {
     brandSub: 'Intelligence',
@@ -441,6 +457,14 @@ export const UI_COPY: Record<
     windowFilterLabel: 'Fenêtre',
     certaintyFilterLabel: 'Certitude',
     sortByLabel: 'Trier par',
+    radarMapTitle: 'Radar vivant',
+    radarMapHint: 'Près du centre = récent. Gros point = score élevé. Le chiffre est le rang.',
+    tabRadar: 'Radar',
+    tabPast: 'Passées',
+    tabWatchlist: 'Veille',
+    tabTimeMachine: 'Machine',
+    tabMore: 'Plus',
+    mobileNavLabel: 'Navigation principale',
   },
 };
 
@@ -505,4 +529,106 @@ export function translateWatchlist(status: WatchlistStatus, lang: AppLang): stri
 
 export function translateMediawanCategory(cat: MediawanCategory, lang: AppLang): string {
   return translateCategory(cat, lang);
+}
+
+/** French versions of short labels that are hard-coded in components or data. */
+const FR_LABELS: Record<string, string> = {
+  'Sync Ready': 'Prêt à synchroniser',
+  Live: 'En direct',
+  Baseline: 'Données initiales',
+  NEW: 'NOUVEAU',
+  Today: 'Aujourd’hui',
+  Recent: 'Récent',
+  'Radar Score': 'Score radar',
+  Mentions: 'Mentions',
+  Creators: 'Créateurs',
+  'Creator Replication': 'Reprises par les créateurs',
+  'Niche Incubator': 'Niche de départ',
+  'Social Velocity': 'Vélocité sociale',
+  'PEAK REPLAY': 'PIC DE REVISIONNAGE',
+  'RADAR ALERT': 'ALERTE RADAR',
+  PEAK: 'PIC',
+  Grade: 'Note',
+  'Past Era (P)': 'Ère passée (P)',
+  Low: 'Faible',
+  Moderate: 'Modéré',
+  'High Uncertainty': 'Incertitude haute',
+  'Kids 9–14': 'Enfants 9–14 ans',
+  'High School 15–18': 'Lycéens 15–18 ans',
+  'Gen Z 18–25': 'Gen Z 18–25 ans',
+  'Close API manager': 'Fermer le gestionnaire d’API',
+  'Close modal': 'Fermer la fenêtre',
+  'Close quick guide': 'Fermer le guide',
+  'Previous month': 'Mois précédent',
+  'Next month': 'Mois suivant',
+  'Mediawan pole': 'Pôle Mediawan',
+  'Expand sidebar': 'Déplier le menu',
+  'Collapse sidebar': 'Replier le menu',
+  'Primary navigation': 'Navigation principale',
+  'Mediawan vertical themes': 'Thématiques Mediawan',
+  'Clear search query': 'Effacer la recherche',
+  'Market language filter': 'Filtre de marché',
+  'Layout view': 'Affichage',
+  Audience: 'Public',
+  Window: 'Fenêtre',
+  Certainty: 'Certitude',
+  'Sort by': 'Trier par',
+  Language: 'Langue',
+  'Switch to Light Mode': 'Passer en mode clair',
+  'Switch to Dark Mode': 'Passer en mode sombre',
+  'Remove from Watchlist': 'Retirer de la veille',
+  'Add to Watchlist': 'Ajouter à la veille',
+  'Short-form trends, viral sounds & creator replication speed':
+    'Formats courts, sons viraux et vitesse de reprise par les créateurs',
+  'Long-form views, watch retention & small-creator breakouts':
+    'Vues longues, rétention et percées de petits créateurs',
+  'Reels momentum, saves, audio shares & visual creators':
+    'Élan des Reels, enregistrements, partages audio et créateurs visuels',
+  'Public Reels reach, regional groups & cross-age shares':
+    'Portée des Reels publics, groupes régionaux et partages entre âges',
+  'Early niche fan communities, book clubs & lore threads':
+    'Communautés de fans de niche, clubs de lecture et fils sur les univers',
+  'Confirms when a niche trend enters mainstream search':
+    'Confirme quand une tendance de niche arrive dans les recherches grand public',
+};
+
+export function tr(text: string, lang: AppLang): string {
+  if (lang === 'en') return text;
+  return FR_LABELS[text] ?? text;
+}
+
+/** "8 days ago", "8d ago", "Today" */
+export function translateAge(text: string, lang: AppLang): string {
+  if (lang === 'en') return text;
+  const match = text.match(/^(\d+)\s*(?:d|days?) ago$/);
+  if (!match) return tr(text, lang);
+  return `il y a ${match[1]} jour${match[1] === '1' ? '' : 's'}`;
+}
+
+/** "5.0 months early" */
+export function translateLeadTime(text: string, lang: AppLang): string {
+  if (lang === 'en') return text;
+  const match = text.match(/^([\d.]+) months early$/);
+  if (!match) return text;
+  return `${match[1].replace(/\.0$/, '').replace('.', ',')} mois d’avance`;
+}
+
+/** "Jan 2026 (M-7) · Alert Triggered (Score: 87)" */
+export function translateAlertLabel(text: string, lang: AppLang): string {
+  if (lang === 'en') return text;
+  return text
+    .replace('Alert Triggered', 'Alerte déclenchée')
+    .replace('Score:', 'score :');
+}
+
+/** "Nov 17, 2026" */
+export function translateDate(text: string, lang: AppLang): string {
+  if (lang === 'en') return text;
+  const date = new Date(text);
+  if (Number.isNaN(date.getTime())) return text;
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    ...(/\d{1,2},/.test(text) ? { year: 'numeric' } : {}),
+  });
 }

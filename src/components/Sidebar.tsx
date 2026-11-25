@@ -12,8 +12,8 @@ import {
   Timer,
 } from 'lucide-react';
 import { AppLang } from '../types';
-import { UI_COPY } from '../i18n';
-import { SidebarGreenPromoCard } from './OrganicGreenShapes';
+import { UI_COPY, tr } from '../i18n';
+import { SidebarGuideCard } from './Stickers';
 
 export type ActiveMainView = 'radar' | 'watchlist' | 'backtesting';
 
@@ -75,28 +75,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`shrink-0 bg-[#F4F0E8] dark:bg-[#1D1B18] border-r border-[#EAE4D9] dark:border-[#3E3B35] flex flex-col justify-between transition-[width,background-color] duration-200 ease-out select-none ${
+      className={`shrink-0 bg-canvas border-r-2 border-edge hidden md:flex flex-col justify-between overflow-y-auto transition-[width,background-color] duration-200 ease-out select-none ${
         collapsed ? 'w-[64px]' : 'w-[232px]'
       }`}
     >
       <div>
         {/* Brand Header */}
-        <div className="h-[62px] px-4 flex items-center justify-between border-b border-[#EAE4D9] dark:border-[#3E3B35]">
+        <div className="h-[62px] px-4 flex items-center justify-between border-b border-line">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[10px] bg-[#EBF5EE] dark:bg-[#263628] border border-[#CAE5D3] dark:border-[#395439] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-[10px] bg-accent-soft border border-accent-line flex items-center justify-center shrink-0">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
                   d="M3 19V5H7.2L12 12.6L16.8 5H21V19H17.4V10.7L13.1 17.5H10.9L6.6 10.7V19H3Z"
-                  className="fill-[#1F6F43] dark:fill-[#81B64C]"
+                  className="fill-accent"
                 />
               </svg>
             </div>
             {!collapsed && (
               <div className="min-w-0 leading-[1.15]">
-                <div className="font-display text-[13.5px] font-bold text-[#22201D] dark:text-[#F5F2EC] truncate">
+                <div className="font-display text-[13.5px] font-bold text-ink truncate">
                   Mediawan
                 </div>
-                <div className="text-[11.5px] font-medium text-[#625C53] dark:text-[#969085] truncate">
+                <div className="text-[11.5px] font-medium text-ink-2 truncate">
                   {c.brandSub}
                 </div>
               </div>
@@ -105,9 +105,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onToggleCollapse}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1.5 rounded-lg text-[#8E877D] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9] dark:hover:bg-[#2E2C28] transition-colors duration-150 shrink-0"
+            aria-label={tr(collapsed ? 'Expand sidebar' : 'Collapse sidebar', lang)}
+            title={tr(collapsed ? 'Expand sidebar' : 'Collapse sidebar', lang)}
+            className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-line transition-colors duration-150 shrink-0"
           >
             {collapsed ? (
               <PanelLeftOpen className="w-4 h-4" strokeWidth={1.75} />
@@ -118,23 +118,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation Links */}
-        <nav className="p-3 space-y-1.5" aria-label="Primary navigation">
+        <nav className="p-3 space-y-1.5" aria-label={tr('Primary navigation', lang)}>
           <button
             type="button"
             onClick={onSelectRadar}
             title={collapsed ? c.navRadar : undefined}
             className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${
               radarActive
-                ? 'bg-[#E4F2E8] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                : 'text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28] font-medium'
+                ? 'bg-accent-soft text-accent font-semibold'
+                : 'text-ink-2 hover:text-ink hover:bg-line/65 font-medium'
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Radar
                 className={`w-4 h-4 shrink-0 ${
                   radarActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                    : 'text-[#736C61] dark:text-[#8E8A81]'
+                    ? 'text-accent'
+                    : 'text-ink-2'
                 }`}
                 strokeWidth={1.85}
               />
@@ -146,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span
                 className={`font-mono text-[11px] px-1.5 py-0.2 rounded-md shrink-0 ${
                   radarActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                    : 'text-[#8E877D]'
+                    ? 'text-accent font-semibold'
+                    : 'text-ink-3'
                 }`}
               >
                 {activeSignalsCount}
@@ -161,16 +161,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={collapsed ? c.navPast : undefined}
             className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${
               pastActive
-                ? 'bg-[#F6EBEB] dark:bg-[#3A2727] text-[#8E3535] dark:text-[#F29C9C] font-semibold'
-                : 'text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28] font-medium'
+                ? 'bg-danger-soft text-danger font-semibold'
+                : 'text-ink-2 hover:text-ink hover:bg-line/65 font-medium'
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <History
                 className={`w-4 h-4 shrink-0 ${
                   pastActive
-                    ? 'text-[#8E3535] dark:text-[#F29C9C]'
-                    : 'text-[#736C61] dark:text-[#8E8A81]'
+                    ? 'text-danger'
+                    : 'text-ink-2'
                 }`}
                 strokeWidth={1.85}
               />
@@ -182,8 +182,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span
                 className={`font-mono text-[11px] px-1.5 py-0.2 rounded-md shrink-0 ${
                   pastActive
-                    ? 'text-[#8E3535] dark:text-[#F29C9C] font-semibold'
-                    : 'text-[#8E877D]'
+                    ? 'text-danger font-semibold'
+                    : 'text-ink-3'
                 }`}
               >
                 {pastTrendsCount}
@@ -197,16 +197,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={collapsed ? c.navWatchlist : undefined}
             className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${
               watchlistActive
-                ? 'bg-[#E4F2E8] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                : 'text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28] font-medium'
+                ? 'bg-accent-soft text-accent font-semibold'
+                : 'text-ink-2 hover:text-ink hover:bg-line/65 font-medium'
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <BookmarkCheck
                 className={`w-4 h-4 shrink-0 ${
                   watchlistActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                    : 'text-[#736C61] dark:text-[#8E8A81]'
+                    ? 'text-accent'
+                    : 'text-ink-2'
                 }`}
                 strokeWidth={1.85}
               />
@@ -218,8 +218,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span
                 className={`font-mono text-[11px] px-1.5 py-0.2 rounded-md shrink-0 ${
                   watchlistActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                    : 'text-[#8E877D]'
+                    ? 'text-accent font-semibold'
+                    : 'text-ink-3'
                 }`}
               >
                 {watchlistCount}
@@ -233,16 +233,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={collapsed ? c.navTimeMachine : undefined}
             className={`w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors duration-150 ${
               backtestingActive
-                ? 'bg-[#E4F2E8] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                : 'text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28] font-medium'
+                ? 'bg-accent-soft text-accent font-semibold'
+                : 'text-ink-2 hover:text-ink hover:bg-line/65 font-medium'
             }`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Timer
                 className={`w-4 h-4 shrink-0 ${
                   backtestingActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                    : 'text-[#736C61] dark:text-[#8E8A81]'
+                    ? 'text-accent'
+                    : 'text-ink-2'
                 }`}
                 strokeWidth={1.85}
               />
@@ -254,8 +254,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span
                 className={`font-mono text-[11px] px-1.5 py-0.2 rounded-md shrink-0 ${
                   backtestingActive
-                    ? 'text-[#1F6F43] dark:text-[#81B64C] font-semibold'
-                    : 'text-[#8E877D]'
+                    ? 'text-accent font-semibold'
+                    : 'text-ink-3'
                 }`}
               >
                 3
@@ -267,11 +267,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             onClick={onOpenApiManager}
             title={collapsed ? c.navApis : undefined}
-            className="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28] font-medium transition-colors duration-150"
+            className="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left text-ink-2 hover:text-ink hover:bg-line/65 font-medium transition-colors duration-150"
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <PlugZap
-                className="w-4 h-4 text-[#736C61] dark:text-[#8E8A81] shrink-0"
+                className="w-4 h-4 text-ink-2 shrink-0"
                 strokeWidth={1.85}
               />
               {!collapsed && (
@@ -279,7 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
             {!collapsed && (
-              <span className="font-mono text-[11px] text-[#1F6F43] dark:text-[#81B64C] font-semibold shrink-0">
+              <span className="font-mono text-[11px] text-accent font-semibold shrink-0">
                 {activeApisCount}
               </span>
             )}
@@ -290,7 +290,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={onOpenQuickGuide}
               title={c.promoCta}
-              className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl text-[#4F4A42] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9]/65 dark:hover:bg-[#2E2C28]"
+              className="w-full flex items-center justify-center px-3 py-2.5 rounded-xl text-ink-2 hover:text-ink hover:bg-line/65"
             >
               <HelpCircle className="w-4 h-4" strokeWidth={1.85} />
             </button>
@@ -302,12 +302,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="space-y-3">
         {!collapsed && (
           <div className="px-3">
-            <SidebarGreenPromoCard onClick={onOpenQuickGuide} lang={lang} />
+            <SidebarGuideCard onClick={onOpenQuickGuide} lang={lang} />
           </div>
         )}
 
         <div
-          className="p-3 border-t border-[#EAE4D9] dark:border-[#3E3B35] relative"
+          className="p-3 border-t border-line relative"
           ref={menuRef}
         >
           <button
@@ -315,34 +315,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => setWorkspaceMenuOpen((o) => !o)}
             className={`w-full flex items-center ${
               collapsed ? 'justify-center p-1.5' : 'justify-between px-2 py-1.5'
-            } rounded-xl hover:bg-[#EAE4D9]/75 dark:hover:bg-[#2E2C28] transition-colors`}
+            } rounded-xl hover:bg-line/75 transition-colors`}
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-8 h-8 rounded-full bg-[#E4F2E8] dark:bg-[#263628] border border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C] font-display text-[11.5px] font-bold flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-full bg-accent-soft border border-accent-line text-accent font-display text-[11.5px] font-bold flex items-center justify-center shrink-0">
                 MM
               </span>
               {!collapsed && (
-                <span className="text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC] truncate">
+                <span className="text-[13px] font-semibold text-ink truncate">
                   {c.navWorkspace}
                 </span>
               )}
             </div>
             {!collapsed && (
-              <ChevronDown className="w-3.5 h-3.5 text-[#625C53] dark:text-[#B5AFA4] shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-ink-2 shrink-0" />
             )}
           </button>
 
           {workspaceMenuOpen && (
-            <div className="absolute left-3 bottom-14 w-[204px] rounded-[12px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-elevated p-1.5 z-50 animate-modal-in">
+            <div className="absolute left-3 bottom-14 w-[204px] rounded-[12px] bg-surface border border-line shadow-elevated p-1.5 z-50 animate-modal-in">
               <button
                 type="button"
                 onClick={() => {
                   setWorkspaceMenuOpen(false);
                   onOpenApiManager();
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[12.5px] text-[#22201D] dark:text-[#F5F2EC] hover:bg-[#FBF9F4] dark:hover:bg-[#383632] text-left"
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[12.5px] text-ink hover:bg-soft text-left"
               >
-                <PlugZap className="w-3.5 h-3.5 text-[#1F6F43] dark:text-[#81B64C]" />
+                <PlugZap className="w-3.5 h-3.5 text-accent" />
                 <span>{c.manageApis}</span>
               </button>
               <button
@@ -351,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   setWorkspaceMenuOpen(false);
                   onResetDemoData();
                 }}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[12.5px] text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#FBF9F4] dark:hover:bg-[#383632] text-left"
+                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[12.5px] text-ink-2 hover:text-ink hover:bg-soft text-left"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>{c.resetData}</span>

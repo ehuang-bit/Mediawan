@@ -278,7 +278,7 @@ export const TrendThumbnail: React.FC<TrendThumbnailProps> = ({
   }
 
   return (
-    <div className="w-[112px] h-[66px] rounded-[11px] overflow-hidden border border-[#EAE4D9] dark:border-[#3E3B35] shrink-0 bg-[#F4F0E8] dark:bg-[#24221F] shadow-xs">
+    <div className="w-[112px] h-[66px] rounded-[11px] overflow-hidden border border-line shrink-0 bg-canvas shadow-xs">
       {hasLiveImage ? (
         <img
           src={trend.viralVideo.thumbnailUrl}

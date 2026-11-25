@@ -12,6 +12,8 @@ import { ApiConnectorConfig, ApiId, AppLang, MicroTrend } from '../types';
 import { PlatformBrandIcon } from './PlatformIcons';
 import { calculateEmergenceScore } from '../utils/csvParser';
 
+import { tr } from '../i18n';
+
 interface ApiManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -152,7 +154,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
               duration: '11:20',
               externalUrl: `https://www.youtube.com/watch?v=${item.id}`,
               thumbnailTheme: {
-                palette: ['#15803D', '#0F172A', '#16A34A'],
+                palette: ['#4F37C4', '#1D1D1F', '#B7A6FF'],
                 frameCode: `YT·LIVE${idx + 1}`,
                 aspectLabel: '16:9 LIVE API',
                 visualMotif: 'creator',
@@ -207,28 +209,28 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#22201D]/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="api-modal-title"
-        className="w-full max-w-[680px] rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-elevated overflow-hidden animate-modal-in"
+        className="w-full max-w-[680px] rounded-[20px] bg-surface border border-line shadow-elevated overflow-hidden animate-modal-in"
       >
-        <div className="px-6 py-4.5 border-b border-[#EAE4D9] dark:border-[#3E3B35] bg-[#FBF9F4] dark:bg-[#24221F] flex items-center justify-between">
+        <div className="px-6 py-4.5 border-b border-line bg-soft flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EBF5EE] dark:bg-[#263628] border border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-accent-soft border border-accent-line text-accent flex items-center justify-center">
               <PlugZap className="w-4 h-4" />
             </div>
             <div>
               <h2
                 id="api-modal-title"
-                className="font-display text-[16px] font-bold text-[#22201D] dark:text-[#F5F2EC]"
+                className="font-display text-[16px] font-bold text-ink"
               >
                 {isFr
                   ? `APIs sociales connectées (${enabledCount} / ${connectors.length} actives)`
                   : `Connected Social APIs (${enabledCount} / ${connectors.length} active)`}
               </h2>
-              <p className="text-[12px] text-[#625C53] dark:text-[#B5AFA4]">
+              <p className="text-[12px] text-ink-2">
                 {isFr
                   ? 'Activez les flux ou configurez vos clés API (TikTok, YouTube, Instagram, Facebook, Reddit, Google Trends).'
                   : 'Turn feeds ON/OFF or configure your API keys (TikTok, YouTube, Instagram, Facebook, Reddit, Google Trends).'}
@@ -239,14 +241,14 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close API manager"
-            className="p-1.5 rounded-full text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9] dark:hover:bg-[#383632] transition-colors"
+            aria-label={tr('Close API manager', lang)}
+            className="p-1.5 rounded-full text-ink-2 hover:text-ink hover:bg-line transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-2.5 max-h-[72vh] overflow-y-auto bg-[#FBF9F4] dark:bg-[#24221F]">
+        <div className="p-5 space-y-2.5 max-h-[72vh] overflow-y-auto bg-soft">
           {connectors.map((api) => {
             const isKeyOpen = expandedKeyId === api.id;
             const hasSavedKey = api.apiKey.trim().length > 0;
@@ -254,34 +256,34 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
             return (
               <div
                 key={api.id}
-                className={`rounded-[14px] bg-[#FFFFFF] dark:bg-[#2E2C28] border p-3.5 transition-colors ${
+                className={`rounded-[14px] bg-surface border p-3.5 transition-colors ${
                   api.enabled
-                    ? 'border-[#EAE4D9] dark:border-[#3E3B35]'
-                    : 'border-[#EAE4D9] dark:border-[#3E3B35] opacity-65'
+                    ? 'border-line'
+                    : 'border-line opacity-65'
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-soft border border-line flex items-center justify-center shrink-0">
                       <PlatformBrandIcon platform={api.platform} size={18} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[13.5px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+                        <span className="text-[13.5px] font-semibold text-ink">
                           {api.name}
                         </span>
-                        <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#FBF9F4] dark:bg-[#24221F] text-[#625C53] dark:text-[#B5AFA4] border border-[#EAE4D9] dark:border-[#3E3B35]">
+                        <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-soft text-ink-2 border border-line">
                           {api.endpointLabel}
                         </span>
                         {hasSavedKey && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#EBF5EE] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] border border-[#CAE5D3] dark:border-[#395439]">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-line">
                             <CheckCircle2 className="w-2.5 h-2.5" />
                             <span>{isFr ? 'Clé enregistrée' : 'Key saved'}</span>
                           </span>
                         )}
                       </div>
-                      <p className="text-[12px] text-[#625C53] dark:text-[#B5AFA4] mt-0.5 truncate">
-                        {api.description}
+                      <p className="text-[12px] text-ink-2 mt-0.5 truncate">
+                        {tr(api.description, lang)}
                       </p>
                     </div>
                   </div>
@@ -292,9 +294,9 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                       onClick={() =>
                         setExpandedKeyId(isKeyOpen ? null : api.id)
                       }
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium bg-soft hover:bg-canvas text-ink border border-line transition-colors"
                     >
-                      <KeyRound className="w-3 h-3 text-[#625C53] dark:text-[#B5AFA4]" />
+                      <KeyRound className="w-3 h-3 text-ink-2" />
                       <span>
                         {isKeyOpen
                           ? isFr
@@ -314,8 +316,8 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                       onClick={() => onToggleConnector(api.id)}
                       className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
                         api.enabled
-                          ? 'bg-[#1F6F43] dark:bg-[#81B64C]'
-                          : 'bg-[#D9D1C3] dark:bg-[#4A4741]'
+                          ? 'bg-pop'
+                          : 'bg-line'
                       }`}
                     >
                       <span
@@ -328,7 +330,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                 </div>
 
                 {isKeyOpen && (
-                  <div className="mt-3 pt-3 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-2.5">
+                  <div className="mt-3 pt-3 border-t border-line space-y-2.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <input
                         type="password"
@@ -339,7 +341,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                             ? `Collez votre clé / jeton ${api.name}…`
                             : `Paste your ${api.name} access token or key…`
                         }
-                        className="flex-1 min-w-[220px] h-[34px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-mono text-[#22201D] dark:text-[#F5F2EC]"
+                        className="flex-1 min-w-[220px] h-[34px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-mono text-ink"
                       />
 
                       {api.supportsBrowserFetch ? (
@@ -347,7 +349,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                           type="button"
                           disabled={fetchingYoutube}
                           onClick={() => handleFetchLiveYoutube(api.apiKey)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] disabled:opacity-50 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop disabled:opacity-50 transition-colors"
                         >
                           {fetchingYoutube ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -359,7 +361,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                           </span>
                         </button>
                       ) : (
-                        <span className="text-[11px] text-[#625C53] dark:text-[#B5AFA4] px-2">
+                        <span className="text-[11px] text-ink-2 px-2">
                           {isFr
                             ? 'Jeton enregistré localement (prêt proxy)'
                             : 'Token saved locally (proxy-ready)'}
@@ -368,13 +370,13 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
                     </div>
 
                     {api.supportsBrowserFetch && youtubeError && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#991B1B] dark:text-[#F87171]">
+                      <div className="flex items-center gap-1.5 text-[11px] text-danger">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>{youtubeError}</span>
                       </div>
                     )}
                     {api.supportsBrowserFetch && youtubeSuccess && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#1F6F43] dark:text-[#81B64C] font-medium">
+                      <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium">
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                         <span>{youtubeSuccess}</span>
                       </div>
@@ -386,11 +388,11 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
           })}
         </div>
 
-        <div className="px-6 py-3.5 bg-[#FFFFFF] dark:bg-[#2E2C28] border-t border-[#EAE4D9] dark:border-[#3E3B35] flex items-center justify-end">
+        <div className="px-6 py-3.5 bg-surface border-t border-line flex items-center justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] transition-colors"
+            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-pop hover:bg-pop-hover text-on-pop transition-colors"
           >
             {isFr ? 'Terminer' : 'Done'}
           </button>
