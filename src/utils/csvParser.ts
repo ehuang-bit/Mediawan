@@ -54,6 +54,7 @@ const VALID_PLATFORMS: PlatformSource[] = [
   'Facebook',
   'Reddit',
   'Google Trends',
+  'Wikipedia',
   'Wattpad/Webtoon',
   'Roblox/Twitch',
 ];

@@ -48,10 +48,10 @@ export const ScoreSparkline: React.FC<ScoreSparklineProps> = ({
 
   const strokeColor =
     maturity === 'Past Era'
-      ? '#D24C44'
+      ? 'var(--mw-danger)'
       : maturity === 'Early Spark' && certainty === 'High Uncertainty'
-      ? '#D9822B'
-      : '#55A852';
+      ? '#FF6445'
+      : '#8F78F5';
 
   const gradId = `spark-grad-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
@@ -84,7 +84,7 @@ export const ScoreSparkline: React.FC<ScoreSparklineProps> = ({
         r="2.4"
         fill={strokeColor}
         stroke="currentColor"
-        className="text-white dark:text-[#302E2B]"
+        className="text-white dark:text-surface"
         strokeWidth="1"
       />
     </svg>

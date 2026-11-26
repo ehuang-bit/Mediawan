@@ -8,9 +8,11 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { ApiConnectorConfig, ApiId, AppLang, MicroTrend } from '../types';
+import { ApiConnectorConfig, ApiId, AppLang, MicroTrend, SourceStatus } from '../types';
 import { PlatformBrandIcon } from './PlatformIcons';
 import { calculateEmergenceScore } from '../utils/csvParser';
+
+import { tr } from '../i18n';
 
 interface ApiManagerModalProps {
   isOpen: boolean;
@@ -39,7 +41,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
   if (!isOpen) return null;
 
   const isFr = lang === 'fr';
-  const enabledCount = connectors.filter((c) => c.enabled).length;
+  const liveCount = connectors.filter((c) => c.status === 'live' && c.enabled).length;
 
   const handleFetchLiveYoutube = async (apiKey: string) => {
     const trimmed = apiKey.trim();
@@ -152,7 +154,7 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
               duration: '11:20',
               externalUrl: `https://www.youtube.com/watch?v=${item.id}`,
               thumbnailTheme: {
-                palette: ['#15803D', '#0F172A', '#16A34A'],
+                palette: ['#4F37C4', '#1D1D1F', '#B7A6FF'],
                 frameCode: `YT·LIVE${idx + 1}`,
                 aspectLabel: '16:9 LIVE API',
                 visualMotif: 'creator',
@@ -206,193 +208,205 @@ export const ApiManagerModal: React.FC<ApiManagerModalProps> = ({
     }
   };
 
+  const groups: { status: SourceStatus; title: string; hint: string }[] = [
+    {
+      status: 'live',
+      title: isFr ? 'Collectées automatiquement' : 'Collected automatically',
+      hint: isFr ? 'Mises à jour avec le bouton ↻' : 'Updated with the ↻ button',
+    },
+    {
+      status: 'snapshot',
+      title: isFr ? 'Export public importé' : 'Public export, imported',
+      hint: isFr ? 'Via « Importer CSV »' : 'Via “Import CSV”',
+    },
+    {
+      status: 'restricted',
+      title: isFr ? 'Observées, pas collectées' : 'Observed, not collected',
+      hint: isFr ? 'Accès réservé : on respecte les règles' : 'Restricted access: we follow the rules',
+    },
+  ];
+
+  const statusPill = (status: SourceStatus) =>
+    status === 'live'
+      ? { label: isFr ? 'En direct' : 'Live', cls: 'bg-accent-soft text-accent border-accent-line' }
+      : status === 'snapshot'
+      ? { label: isFr ? 'Snapshot' : 'Snapshot', cls: 'bg-warn-soft text-warn border-warn-line' }
+      : { label: isFr ? 'Accès réservé' : 'Restricted', cls: 'bg-soft text-ink-2 border-line' };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#22201D]/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/35 dark:bg-black/60 backdrop-blur-[2px] animate-backdrop-in">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="api-modal-title"
-        className="w-full max-w-[680px] rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-elevated overflow-hidden animate-modal-in"
+        className="w-full max-w-[720px] rounded-[20px] bg-surface border border-line shadow-elevated overflow-hidden animate-modal-in"
       >
-        <div className="px-6 py-4.5 border-b border-[#EAE4D9] dark:border-[#3E3B35] bg-[#FBF9F4] dark:bg-[#24221F] flex items-center justify-between">
+        <div className="px-6 py-4.5 border-b border-line bg-soft flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EBF5EE] dark:bg-[#263628] border border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-accent-soft border border-accent-line text-accent flex items-center justify-center">
               <PlugZap className="w-4 h-4" />
             </div>
             <div>
-              <h2
-                id="api-modal-title"
-                className="font-display text-[16px] font-bold text-[#22201D] dark:text-[#F5F2EC]"
-              >
-                {isFr
-                  ? `APIs sociales connectées (${enabledCount} / ${connectors.length} actives)`
-                  : `Connected Social APIs (${enabledCount} / ${connectors.length} active)`}
+              <h2 id="api-modal-title" className="font-display text-[16px] font-bold text-ink">
+                {isFr ? 'Sources de données' : 'Data sources'}
               </h2>
-              <p className="text-[12px] text-[#625C53] dark:text-[#B5AFA4]">
+              <p className="text-[12px] text-ink-2">
                 {isFr
-                  ? 'Activez les flux ou configurez vos clés API (TikTok, YouTube, Instagram, Facebook, Reddit, Google Trends).'
-                  : 'Turn feeds ON/OFF or configure your API keys (TikTok, YouTube, Instagram, Facebook, Reddit, Google Trends).'}
+                  ? `${liveCount} sources en direct · données publiques uniquement · API officielles · aucune donnée personnelle`
+                  : `${liveCount} live sources · public data only · official APIs · no personal data`}
               </p>
             </div>
           </div>
-
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close API manager"
-            className="p-1.5 rounded-full text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#EAE4D9] dark:hover:bg-[#383632] transition-colors"
+            aria-label={tr('Close API manager', lang)}
+            className="p-1.5 rounded-full text-ink-2 hover:text-ink hover:bg-line transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-2.5 max-h-[72vh] overflow-y-auto bg-[#FBF9F4] dark:bg-[#24221F]">
-          {connectors.map((api) => {
-            const isKeyOpen = expandedKeyId === api.id;
-            const hasSavedKey = api.apiKey.trim().length > 0;
-
+        <div className="p-5 space-y-5 max-h-[72vh] overflow-y-auto bg-soft">
+          {groups.map((g) => {
+            const items = connectors.filter((c) => c.status === g.status);
+            if (items.length === 0) return null;
             return (
-              <div
-                key={api.id}
-                className={`rounded-[14px] bg-[#FFFFFF] dark:bg-[#2E2C28] border p-3.5 transition-colors ${
-                  api.enabled
-                    ? 'border-[#EAE4D9] dark:border-[#3E3B35]'
-                    : 'border-[#EAE4D9] dark:border-[#3E3B35] opacity-65'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] flex items-center justify-center shrink-0">
-                      <PlatformBrandIcon platform={api.platform} size={18} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[13.5px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
-                          {api.name}
-                        </span>
-                        <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#FBF9F4] dark:bg-[#24221F] text-[#625C53] dark:text-[#B5AFA4] border border-[#EAE4D9] dark:border-[#3E3B35]">
-                          {api.endpointLabel}
-                        </span>
-                        {hasSavedKey && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#EBF5EE] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] border border-[#CAE5D3] dark:border-[#395439]">
-                            <CheckCircle2 className="w-2.5 h-2.5" />
-                            <span>{isFr ? 'Clé enregistrée' : 'Key saved'}</span>
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[12px] text-[#625C53] dark:text-[#B5AFA4] mt-0.5 truncate">
-                        {api.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedKeyId(isKeyOpen ? null : api.id)
-                      }
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] transition-colors"
-                    >
-                      <KeyRound className="w-3 h-3 text-[#625C53] dark:text-[#B5AFA4]" />
-                      <span>
-                        {isKeyOpen
-                          ? isFr
-                            ? 'Masquer'
-                            : 'Hide key'
-                          : isFr
-                          ? 'Configurer'
-                          : 'Configure key'}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={api.enabled}
-                      aria-label={`Toggle ${api.name}`}
-                      onClick={() => onToggleConnector(api.id)}
-                      className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
-                        api.enabled
-                          ? 'bg-[#1F6F43] dark:bg-[#81B64C]'
-                          : 'bg-[#D9D1C3] dark:bg-[#4A4741]'
+              <section key={g.status} className="space-y-2">
+                <div className="flex items-baseline justify-between gap-2 px-1">
+                  <h3 className="text-[12.5px] font-bold text-ink">{g.title}</h3>
+                  <span className="text-[11px] text-ink-3">{g.hint}</span>
+                </div>
+                {items.map((api) => {
+                  const isKeyOpen = expandedKeyId === api.id;
+                  const hasSavedKey = api.apiKey.trim().length > 0;
+                  const pill = statusPill(api.status);
+                  const restricted = api.status === 'restricted';
+                  return (
+                    <div
+                      key={api.id}
+                      className={`rounded-[14px] bg-surface border border-line p-3.5 ${
+                        !restricted && !api.enabled ? 'opacity-65' : ''
                       }`}
                     >
-                      <span
-                        className={`block w-4 h-4 rounded-full bg-[#FFFFFF] transition-transform duration-150 ${
-                          api.enabled ? 'translate-x-4.5' : 'translate-x-0.5'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-soft border border-line flex items-center justify-center shrink-0">
+                            <PlatformBrandIcon platform={api.platform} size={18} />
+                          </div>
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[13.5px] font-semibold text-ink">{api.name}</span>
+                              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${pill.cls}`}>
+                                {pill.label}
+                              </span>
+                              <a
+                                href={api.docsUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-mono text-[11px] text-ink-2 underline decoration-dotted underline-offset-2 hover:text-accent"
+                              >
+                                {api.endpointLabel}
+                              </a>
+                              {hasSavedKey && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-line">
+                                  <CheckCircle2 className="w-2.5 h-2.5" />
+                                  <span>{isFr ? 'Clé enregistrée' : 'Key saved'}</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[12px] text-ink leading-snug">{isFr ? api.collects.fr : api.collects.en}</p>
+                            <p className="text-[11.5px] text-ink-2 leading-snug">{isFr ? api.access.fr : api.access.en}</p>
+                          </div>
+                        </div>
 
-                {isKeyOpen && (
-                  <div className="mt-3 pt-3 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-2.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <input
-                        type="password"
-                        value={api.apiKey}
-                        onChange={(e) => onUpdateApiKey(api.id, e.target.value)}
-                        placeholder={
-                          isFr
-                            ? `Collez votre clé / jeton ${api.name}…`
-                            : `Paste your ${api.name} access token or key…`
-                        }
-                        className="flex-1 min-w-[220px] h-[34px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-mono text-[#22201D] dark:text-[#F5F2EC]"
-                      />
+                        {!restricted && (
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {api.supportsBrowserFetch && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedKeyId(isKeyOpen ? null : api.id)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-medium bg-soft hover:bg-canvas text-ink border border-line transition-colors"
+                              >
+                                <KeyRound className="w-3 h-3 text-ink-2" />
+                                <span>{isKeyOpen ? (isFr ? 'Masquer' : 'Hide') : isFr ? 'Clé API' : 'API key'}</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={api.enabled}
+                              aria-label={`Toggle ${api.name}`}
+                              onClick={() => onToggleConnector(api.id)}
+                              className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
+                                api.enabled ? 'bg-pop' : 'bg-line'
+                              }`}
+                            >
+                              <span
+                                className={`block w-4 h-4 rounded-full bg-[#FFFFFF] transition-transform duration-150 ${
+                                  api.enabled ? 'translate-x-4.5' : 'translate-x-0.5'
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                      {api.supportsBrowserFetch ? (
-                        <button
-                          type="button"
-                          disabled={fetchingYoutube}
-                          onClick={() => handleFetchLiveYoutube(api.apiKey)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] disabled:opacity-50 transition-colors"
-                        >
-                          {fetchingYoutube ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Sparkles className="w-3.5 h-3.5" />
+                      {isKeyOpen && api.supportsBrowserFetch && (
+                        <div className="mt-3 pt-3 border-t border-line space-y-2.5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="password"
+                              value={api.apiKey}
+                              onChange={(e) => onUpdateApiKey(api.id, e.target.value)}
+                              placeholder={isFr ? 'Collez votre clé YouTube Data API v3…' : 'Paste your YouTube Data API v3 key…'}
+                              className="flex-1 min-w-[220px] h-[34px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-mono text-ink"
+                            />
+                            <button
+                              type="button"
+                              disabled={fetchingYoutube}
+                              onClick={() => handleFetchLiveYoutube(api.apiKey)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop disabled:opacity-50 transition-colors"
+                            >
+                              {fetchingYoutube ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                              <span>{isFr ? 'Charger les tendances YouTube FR' : 'Fetch YouTube FR trends'}</span>
+                            </button>
+                          </div>
+                          {youtubeError && (
+                            <div className="flex items-center gap-1.5 text-[11px] text-danger">
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{youtubeError}</span>
+                            </div>
                           )}
-                          <span>
-                            {isFr ? 'Charger YouTube FR live' : 'Fetch live YouTube trends'}
-                          </span>
-                        </button>
-                      ) : (
-                        <span className="text-[11px] text-[#625C53] dark:text-[#B5AFA4] px-2">
-                          {isFr
-                            ? 'Jeton enregistré localement (prêt proxy)'
-                            : 'Token saved locally (proxy-ready)'}
-                        </span>
+                          {youtubeSuccess && (
+                            <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                              <span>{youtubeSuccess}</span>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
-
-                    {api.supportsBrowserFetch && youtubeError && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#991B1B] dark:text-[#F87171]">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span>{youtubeError}</span>
-                      </div>
-                    )}
-                    {api.supportsBrowserFetch && youtubeSuccess && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#1F6F43] dark:text-[#81B64C] font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>{youtubeSuccess}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                  );
+                })}
+              </section>
             );
           })}
+
+          <p className="text-[11.5px] text-ink-2 leading-snug px-1">
+            {isFr
+              ? 'Démo : les signaux de départ sont un jeu de données préparé à partir d’observations publiques. Les flux YouTube et Wikipédia les mettent à jour en direct quand on clique sur ↻.'
+              : 'Demo: the starting signals are a prepared dataset built from public observations. YouTube and Wikipedia feeds update them live when you click ↻.'}
+          </p>
         </div>
 
-        <div className="px-6 py-3.5 bg-[#FFFFFF] dark:bg-[#2E2C28] border-t border-[#EAE4D9] dark:border-[#3E3B35] flex items-center justify-end">
+        <div className="px-6 py-3.5 bg-surface border-t border-line flex items-center justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] transition-colors"
+            className="px-4 py-1.5 rounded-full text-[13px] font-semibold bg-pop hover:bg-pop-hover text-on-pop transition-colors"
           >
-            {isFr ? 'Terminer' : 'Done'}
+            {isFr ? 'Fermer' : 'Close'}
           </button>
         </div>
       </div>

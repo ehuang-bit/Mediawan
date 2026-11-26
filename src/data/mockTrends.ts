@@ -1,6 +1,6 @@
 import { MicroTrend } from '../types';
 
-export const INITIAL_MICRO_TRENDS: MicroTrend[] = [
+const SEED_TRENDS: MicroTrend[] = [
   // =========================================================================
   // ACTIVE FUTURE SIGNALS (MAX 2–3 WEEK HORIZON: 5–20 DAYS SINCE T0)
   // =========================================================================
@@ -1666,3 +1666,19 @@ export const INITIAL_MICRO_TRENDS: MicroTrend[] = [
     ],
   },
 ];
+
+/** Signals whose public Wikipedia page is tracked live through the Wikimedia Pageviews API. */
+const WIKIPEDIA_TRACKED = new Set([
+  'mw-sig-04',
+  'mw-sig-07',
+  'mw-sig-08',
+  'mw-past-01',
+  'mw-past-04',
+  'mw-past-05',
+]);
+
+export const INITIAL_MICRO_TRENDS: MicroTrend[] = SEED_TRENDS.map((t) =>
+  WIKIPEDIA_TRACKED.has(t.id) && !t.platforms.includes('Wikipedia')
+    ? { ...t, platforms: [...t.platforms, 'Wikipedia'] }
+    : t
+);

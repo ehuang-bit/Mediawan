@@ -1,7 +1,7 @@
+import { getVerdict, Verdict } from '../utils/verdict';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUp,
-  BarChart3,
   Bookmark,
   ChevronDown,
   Clapperboard,
@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   LayoutList,
   Palette,
-  Radar,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -19,7 +18,6 @@ import {
   Users,
   Video,
   X,
-  Zap,
 } from 'lucide-react';
 import {
   AppLang,
@@ -36,7 +34,7 @@ import {
   CategoryTag,
   CertaintyBadge,
   ColleagueAvatar,
-  GradeBadge,
+  VerdictBadge,
   MarketBadge,
   MaturityBadge,
   PillarMiniMeter,
@@ -46,13 +44,9 @@ import {
 import { PlatformBrandIcon } from './PlatformIcons';
 import { TrendThumbnail } from './TrendThumbnail';
 import { ScoreSparkline } from './ScoreSparkline';
-import { HeroGreenWaveBackdrop, RadarEmblemIcon } from './OrganicGreenShapes';
-import {
-  getTimeGreeting,
-  translateCategory,
-  translateCertainty,
-  UI_COPY,
-} from '../i18n';
+import { RadarEmblemIcon } from './Stickers';
+import { RadarMap } from './RadarMap';
+import { getTimeGreeting, translateCategory, translateCertainty, UI_COPY, tr } from '../i18n';
 
 const ACTIVE_CATEGORY_TABS: {
   id: Exclude<CategoryTab, 'Past Trends'>;
@@ -86,13 +80,15 @@ const CERTAINTY_OPTIONS: CertaintyFilter[] = [
   'High Uncertainty',
 ];
 
-const ALL_PLATFORMS: PlatformSource[] = [
-  'TikTok',
+/** Collected sources first, then platforms only observed. Only platforms present in the data are shown. */
+const PLATFORM_ORDER: PlatformSource[] = [
   'YouTube',
+  'Wikipedia',
+  'Google Trends',
+  'Reddit',
+  'TikTok',
   'Instagram',
   'Facebook',
-  'Reddit',
-  'Google Trends',
   'Wattpad/Webtoon',
   'Roblox/Twitch',
 ];
@@ -119,6 +115,35 @@ export interface RadarFilterState {
   certainty: CertaintyFilter;
   platform: PlatformSource | 'All';
   sortBy: SortOption;
+  /** Top trends of the day / week / month / year (kick-off deliverable) */
+  period: PeriodFilter;
+  verdict: 'all' | Verdict;
+}
+
+export type PeriodFilter = 'all' | 'day' | 'week' | 'month' | 'year';
+
+export const PERIOD_MAX_DAYS: Record<Exclude<PeriodFilter, 'all'>, number> = {
+  day: 1,
+  week: 7,
+  month: 30,
+  year: 365,
+};
+
+/** Shared by the list and the drawer navigation (App.tsx). */
+export function matchesPeriodAndVerdict(
+  t: MicroTrend,
+  filters: Pick<RadarFilterState, 'period' | 'verdict'>,
+  isPastTab: boolean,
+  lang: AppLang
+): boolean {
+  if (isPastTab) return true;
+  if (filters.period && filters.period !== 'all' && t.daysSinceT0 > PERIOD_MAX_DAYS[filters.period]) {
+    return false;
+  }
+  if (filters.verdict && filters.verdict !== 'all' && getVerdict(t, lang).verdict !== filters.verdict) {
+    return false;
+  }
+  return true;
 }
 
 interface SignalRadarViewProps {
@@ -209,6 +234,9 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
 
     const matching = basePool.filter((t) => {
       if (!isPastTab && watchlistOnly && t.watchlistStatus === 'Not Tracked') {
+        return false;
+      }
+      if (!matchesPeriodAndVerdict(t, filters, isPastTab, lang)) {
         return false;
       }
 
@@ -317,6 +345,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
     if (filters.platform !== 'All') cnt += 1;
     if (filters.sortBy !== 'Emergence Score (Default)') cnt += 1;
     if (filters.searchQuery.trim() !== '') cnt += 1;
+    if (!isPastTab && filters.period !== 'all') cnt += 1;
+    if (!isPastTab && filters.verdict !== 'all') cnt += 1;
     if (watchlistOnly) cnt += 1;
     if (isPastTab && pastArchetype !== 'All Eras') cnt += 1;
     return cnt;
@@ -331,12 +361,20 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
     return cnt;
   }, [filters, isPastTab]);
 
-  const breakoutCount = activeFuturePool.filter(
-    (t) => t.maturity === 'Breakout Zone'
-  ).length;
-  const highConfidenceCount = activeFuturePool.filter(
-    (t) => t.certainty === 'High Confidence'
-  ).length;
+  const visiblePlatforms = useMemo(() => {
+    const present = new Set(trends.flatMap((t) => t.platforms));
+    // Keep the bar light: the 6 main sources (others stay searchable in the search box)
+    return PLATFORM_ORDER.filter((p) => present.has(p)).slice(0, 6);
+  }, [trends]);
+
+  const verdictCounts = useMemo(() => {
+    const counts = { act: 0, watch: 0, early: 0 };
+    for (const t of activeFuturePool) {
+      const v = getVerdict(t, lang).verdict;
+      if (v === 'act' || v === 'watch' || v === 'early') counts[v] += 1;
+    }
+    return counts;
+  }, [activeFuturePool, lang]);
 
   const pastFlashCount = pastArchivePool.filter(
     (t) => t.pastEraMetadata?.archetype === 'Viral Flash Wave'
@@ -350,204 +388,102 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
     return c.eraSlang;
   };
 
+  const toggleArchetype = (arch: PastArchetypeFilter) =>
+    setPastArchetype(pastArchetype === arch ? 'All Eras' : arch);
+
+  const kpiCards = isPastTab
+    ? [
+        {
+          label: c.kpiPastTotal,
+          value: pastArchivePool.length,
+          tone: 'bg-gold -rotate-1',
+          pressed: false,
+          onClick: () => setPastArchetype('All Eras'),
+        },
+        {
+          label: c.kpiPastFlash,
+          value: pastFlashCount,
+          tone: 'bg-pop rotate-1',
+          pressed: pastArchetype === 'Viral Flash Wave',
+          onClick: () => toggleArchetype('Viral Flash Wave'),
+        },
+        {
+          label: c.kpiPastOther,
+          value: pastLongerCount,
+          tone: 'bg-lilac -rotate-1',
+          pressed: pastArchetype === 'Slang & Creator Era',
+          onClick: () => toggleArchetype('Slang & Creator Era'),
+        },
+      ]
+    : [
+        {
+          label: lang === 'fr' ? 'Signaux actifs (≤ 21 j)' : 'Active signals (≤ 21d)',
+          value: activeFuturePool.length,
+          tone: 'bg-gold -rotate-1',
+          pressed: false,
+          onClick: () => onUpdateFilters({ verdict: 'all', maturity: 'All', certainty: 'All' }),
+        },
+        {
+          label: lang === 'fr' ? 'À traiter : Agir' : 'To handle: Act now',
+          value: verdictCounts.act,
+          tone: 'bg-pop rotate-1',
+          pressed: filters.verdict === 'act',
+          onClick: () => onUpdateFilters({ verdict: filters.verdict === 'act' ? 'all' : 'act' }),
+        },
+        {
+          label: lang === 'fr' ? 'À surveiller' : 'To watch',
+          value: verdictCounts.watch,
+          tone: 'bg-lilac -rotate-1',
+          pressed: filters.verdict === 'watch',
+          onClick: () => onUpdateFilters({ verdict: filters.verdict === 'watch' ? 'all' : 'watch' }),
+        },
+      ];
+
   return (
-    <div className="max-w-[1400px] mx-auto px-6 py-6 space-y-5">
-      {/* Warm Humanist Hero Banner with Botanical Green Waves + Clickable KPI Cards */}
-      <div className="relative rounded-[22px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] p-7 overflow-hidden shadow-card">
-        <HeroGreenWaveBackdrop tone={isPastTab ? 'archive' : 'emerald'} />
-
-        <div className="relative z-10 space-y-5">
-          <div className="flex items-start gap-4 max-w-[680px]">
-            <RadarEmblemIcon mode={isPastTab ? 'past' : 'radar'} />
-            <div>
-              {!isPastTab && (
-                <div className="text-[12.5px] font-semibold text-[#1F6F43] dark:text-[#81B64C] mb-0.5">
-                  {greeting}
-                </div>
-              )}
-              <h1 className="font-display text-[26px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-[1.15]">
-                {isPastTab ? c.pastTitle : c.radarTitle}
-              </h1>
-              <p className="text-[13.5px] text-[#625C53] dark:text-[#B5AFA4] mt-1 leading-[1.5]">
-                {isPastTab ? c.pastSubtitle : c.radarSubtitle}
-              </p>
-            </div>
+    <div className="max-w-[1400px] mx-auto px-3 sm:px-6 py-5 sm:py-6 space-y-5">
+      {/* Hero: title + clickable sticker KPIs */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5">
+        <div className="flex items-start gap-4 max-w-[620px]">
+          <RadarEmblemIcon mode={isPastTab ? 'past' : 'radar'} />
+          <div>
+            {!isPastTab && (
+              <div className="text-[13px] font-semibold text-accent">
+                {greeting}
+              </div>
+            )}
+            <h1 className="font-display text-[34px] sm:text-[42px] font-extrabold text-ink leading-[1.05]">
+              {isPastTab ? c.pastTitle : c.radarTitle}
+              <span className="text-pop" aria-hidden="true">*</span>
+            </h1>
+            <p className="text-[14px] text-ink-2 mt-1 leading-[1.5]">
+              {isPastTab ? c.pastSubtitle : c.radarSubtitle}
+            </p>
           </div>
+        </div>
 
-          {!isPastTab ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-[720px]">
-              <button
-                type="button"
-                onClick={() =>
-                  onUpdateFilters({
-                    maturity: 'All',
-                    certainty: 'All',
-                  })
-                }
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#EEF6F0]/95 dark:bg-[#263628]/95 border ${
-                  filters.maturity === 'All' && filters.certainty === 'All'
-                    ? 'border-[#8AC8A0] dark:border-[#629E47] ring-1 ring-[#1F6F43]/15'
-                    : 'border-[#D5E9DB] dark:border-[#395439]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#1F2C20] flex items-center justify-center shrink-0 shadow-xs">
-                  <Radar className="w-4 h-4 text-[#1F6F43] dark:text-[#81B64C]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {activeFuturePool.length}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#1F6F43] dark:text-[#81B64C] mt-1">
-                    {c.kpiFuture}
-                  </div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onUpdateFilters({
-                    maturity:
-                      filters.maturity === 'Breakout Zone (8–21d)'
-                        ? 'All'
-                        : 'Breakout Zone (8–21d)',
-                  })
-                }
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#FAF3E8]/95 dark:bg-[#3A2E1E]/95 border ${
-                  filters.maturity === 'Breakout Zone (8–21d)'
-                    ? 'border-[#DFAD67] dark:border-[#B58237] ring-1 ring-[#B45309]/20'
-                    : 'border-[#F0E2CB] dark:border-[#554229]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#2C2317] flex items-center justify-center shrink-0 shadow-xs">
-                  <Zap className="w-4 h-4 text-[#B45309] dark:text-[#FBBF24]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {breakoutCount}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#B45309] dark:text-[#FBBF24] mt-1">
-                    {c.kpiBreakout}
-                  </div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  onUpdateFilters({
-                    certainty:
-                      filters.certainty === 'High Confidence'
-                        ? 'All'
-                        : 'High Confidence',
-                  })
-                }
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#F0F2FA]/95 dark:bg-[#262B3A]/95 border ${
-                  filters.certainty === 'High Confidence'
-                    ? 'border-[#9AA8DC] dark:border-[#6A7EC4] ring-1 ring-[#4B5CA8]/20'
-                    : 'border-[#E0E5F5] dark:border-[#39415A]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#1E2330] flex items-center justify-center shrink-0 shadow-xs">
-                  <BarChart3 className="w-4 h-4 text-[#4B5CA8] dark:text-[#93A8F5]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {highConfidenceCount}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#4B5CA8] dark:text-[#93A8F5] mt-1">
-                    {c.kpiConfidence}
-                  </div>
-                </div>
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-[720px]">
-              <button
-                type="button"
-                onClick={() => setPastArchetype('All Eras')}
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#F8EFEF]/95 dark:bg-[#3A2727]/95 border ${
-                  pastArchetype === 'All Eras'
-                    ? 'border-[#CFA4A4] dark:border-[#8C5454]'
-                    : 'border-[#EAD4D4] dark:border-[#5D3838]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#2D1E1E] flex items-center justify-center shrink-0 shadow-xs">
-                  <History className="w-4 h-4 text-[#8E3535] dark:text-[#F29C9C]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {pastArchivePool.length}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#8E3535] dark:text-[#F29C9C] mt-1">
-                    {c.kpiPastTotal}
-                  </div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setPastArchetype(
-                    pastArchetype === 'Viral Flash Wave'
-                      ? 'All Eras'
-                      : 'Viral Flash Wave'
-                  )
-                }
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#FAF3E8]/95 dark:bg-[#3A2E1E]/95 border ${
-                  pastArchetype === 'Viral Flash Wave'
-                    ? 'border-[#DFAD67] dark:border-[#B58237]'
-                    : 'border-[#F0E2CB] dark:border-[#554229]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#2C2317] flex items-center justify-center shrink-0 shadow-xs">
-                  <Zap className="w-4 h-4 text-[#B45309] dark:text-[#FBBF24]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {pastFlashCount}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#B45309] dark:text-[#FBBF24] mt-1">
-                    {c.kpiPastFlash}
-                  </div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setPastArchetype(
-                    pastArchetype === 'Slang & Creator Era'
-                      ? 'All Eras'
-                      : 'Slang & Creator Era'
-                  )
-                }
-                className={`card-humanist text-left flex items-center gap-3.5 px-4 py-3.5 rounded-[16px] bg-[#EEF6F0]/95 dark:bg-[#263628]/95 border ${
-                  pastArchetype === 'Slang & Creator Era'
-                    ? 'border-[#8AC8A0] dark:border-[#629E47]'
-                    : 'border-[#D5E9DB] dark:border-[#395439]'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#FFFFFF]/95 dark:bg-[#1F2C20] flex items-center justify-center shrink-0 shadow-xs">
-                  <BarChart3 className="w-4 h-4 text-[#1F6F43] dark:text-[#81B64C]" />
-                </div>
-                <div>
-                  <div className="font-display text-[21px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] leading-none tabular-nums">
-                    {pastLongerCount}
-                  </div>
-                  <div className="text-[11.5px] font-semibold text-[#1F6F43] dark:text-[#81B64C] mt-1">
-                    {c.kpiPastOther}
-                  </div>
-                </div>
-              </button>
-            </div>
-          )}
+        <div className="grid grid-cols-3 gap-3 xl:w-[520px] shrink-0">
+          {kpiCards.map((kpi) => (
+            <button
+              key={kpi.label}
+              type="button"
+              onClick={kpi.onClick}
+              aria-pressed={kpi.pressed}
+              className={`card-humanist text-left rounded-[18px] border px-3.5 py-3 text-on-pop ${kpi.tone}`}
+            >
+              <div className="font-display text-[34px] sm:text-[40px] font-extrabold leading-none tabular-nums">
+                {kpi.value}
+              </div>
+              <div className="text-[12px] font-semibold leading-tight mt-1">
+                {kpi.label}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Floating Rounded-Full Category Pills + Separated Past Trends Pill */}
-      <div className="flex items-center overflow-x-auto pb-0.5">
-        <nav className="flex items-center gap-1.5" aria-label="Mediawan vertical themes">
+      <div className="no-scrollbar flex items-center overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 py-1">
+        <nav className="flex items-center gap-1.5" aria-label={tr('Mediawan vertical themes', lang)}>
           {ACTIVE_CATEGORY_TABS.map(({ id, icon: Icon }) => {
             const isActive = filters.categoryTab === id;
             return (
@@ -557,8 +493,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 onClick={() => onUpdateFilters({ categoryTab: id })}
                 className={`px-3.5 py-2 rounded-full text-[12.5px] whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 border ${
                   isActive
-                    ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] border-[#1F6F43] dark:border-[#81B64C] font-semibold shadow-xs'
-                    : 'bg-[#FFFFFF] dark:bg-[#2E2C28] text-[#625C53] dark:text-[#B5AFA4] border-[#EAE4D9] dark:border-[#3E3B35] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:border-[#D6CFC2] font-medium'
+                    ? 'bg-pop text-on-pop border-edge font-semibold shadow-xs'
+                    : 'bg-surface text-ink-2 border-line hover:text-ink hover:border-line font-medium'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -566,8 +502,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 <span
                   className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
                     isActive
-                      ? 'bg-[#FFFFFF]/20 dark:bg-[#191815]/15 text-current'
-                      : 'bg-[#F4F0E8] dark:bg-[#24221F] text-[#625C53] dark:text-[#B5AFA4]'
+                      ? 'bg-surface/20 text-current'
+                      : 'bg-canvas text-ink-2'
                   }`}
                 >
                   {categoryCounts[id]}
@@ -576,7 +512,7 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
             );
           })}
 
-          <span className="h-5 w-[1px] bg-[#DFD8CA] dark:bg-[#3E3B35] mx-1 shrink-0" />
+          <span className="h-5 w-[1px] bg-line mx-1 shrink-0" />
 
           <button
             type="button"
@@ -588,8 +524,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
             }
             className={`px-3.5 py-2 rounded-full text-[12.5px] whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 border ${
               isPastTab
-                ? 'bg-[#8E3535] dark:bg-[#F29C9C] text-[#FFFFFF] dark:text-[#2B1818] border-[#8E3535] dark:border-[#F29C9C] font-semibold shadow-xs'
-                : 'bg-[#FBF4F4] dark:bg-[#342626] text-[#7D3A3A] dark:text-[#D5A0A0] border-[#EAD4D4] dark:border-[#5D3838] hover:border-[#CFA4A4] font-medium'
+                ? 'bg-gold text-on-gold border-danger font-semibold shadow-xs'
+                : 'bg-danger-soft text-danger border-danger-line hover:border-danger font-medium'
             }`}
           >
             <History className="w-3.5 h-3.5 shrink-0" />
@@ -597,8 +533,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
             <span
               className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
                 isPastTab
-                  ? 'bg-[#FFFFFF]/20 dark:bg-[#2B1818]/15 text-current'
-                  : 'bg-[#F3E4E4] dark:bg-[#2A1D1D] text-[#8E3535] dark:text-[#F29C9C]'
+                  ? 'bg-surface/20 text-current'
+                  : 'bg-danger-soft text-danger'
               }`}
             >
               {categoryCounts['Past Trends']}
@@ -624,8 +560,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               onClick={() => setPastArchetype(arch)}
               className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${
                 pastArchetype === arch
-                  ? 'bg-[#8E3535] dark:bg-[#F29C9C] text-[#FFFFFF] dark:text-[#2B1818] border-[#8E3535] dark:border-[#F29C9C]'
-                  : 'bg-[#FFFFFF] dark:bg-[#2E2C28] text-[#5D2929] dark:text-[#E5B8B8] border-[#EAD4D4] dark:border-[#5D3838] hover:bg-[#FAF0F0] dark:hover:bg-[#3A2727]'
+                  ? 'bg-gold text-on-gold border-danger'
+                  : 'bg-surface text-danger border-danger-line hover:bg-danger-soft'
               }`}
             >
               {archetypeLabel(arch)}
@@ -634,13 +570,22 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
         </div>
       )}
 
+      {!isPastTab && (
+        <RadarMap
+          trends={filteredAndSorted}
+          selectedTrendId={selectedTrendId}
+          onSelectTrend={onSelectTrend}
+          lang={lang}
+        />
+      )}
+
       {/* Calm Filter Bar with Progressive Disclosure + List/Cards Switcher */}
-      <div className="p-4 rounded-[18px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-card space-y-3">
+      <div className="p-4 rounded-[18px] bg-surface border border-line shadow-card space-y-3">
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Search */}
-          <div className="relative flex-1 min-w-[220px]">
+          <div className="relative flex-1 min-w-[220px] basis-full sm:basis-0">
             <Search
-              className="w-4 h-4 text-[#8E877D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
               strokeWidth={1.85}
             />
             <input
@@ -653,19 +598,19 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 isPastTab ? c.searchPastPlaceholder : c.searchPlaceholder
               }
               aria-label={c.searchPlaceholder}
-              className="w-full h-[42px] pl-10 pr-10 rounded-full bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] dark:focus:border-[#81B64C] focus:bg-[#FFFFFF] dark:focus:bg-[#22201D] focus:outline-none text-[13px] text-[#22201D] dark:text-[#F5F2EC] placeholder:text-[#8E877D] transition-colors"
+              className="w-full h-[42px] pl-10 pr-10 rounded-full bg-soft border border-line focus:border-accent focus:bg-surface focus:outline-none text-[13px] text-ink placeholder:text-ink-3 transition-colors"
             />
             {filters.searchQuery ? (
               <button
                 type="button"
                 onClick={() => onUpdateFilters({ searchQuery: '' })}
-                aria-label="Clear search query"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#625C53] hover:text-[#22201D] dark:hover:text-[#F5F2EC]"
+                aria-label={tr('Clear search query', lang)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 hover:text-ink"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <kbd className="hidden sm:inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#DFD8CA] dark:border-[#494640] font-mono text-[10px] text-[#8E877D] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center w-5 h-5 rounded-full bg-surface border border-line font-mono text-[11px] text-ink-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 /
               </kbd>
             )}
@@ -674,8 +619,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
           {/* FR / EN Market Selector */}
           <div
             role="group"
-            aria-label="Market language filter"
-            className="h-[42px] inline-flex items-center p-1 rounded-full bg-[#F4F0E8] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35]"
+            aria-label={tr('Market language filter', lang)}
+            className="h-[42px] inline-flex items-center p-1 rounded-full bg-canvas border border-line"
           >
             {(
               [
@@ -690,8 +635,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 onClick={() => onUpdateFilters({ market: m.id })}
                 className={`px-3 py-1 rounded-full font-mono text-[11px] font-semibold transition-colors ${
                   filters.market === m.id
-                    ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]'
-                    : 'text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC]'
+                    ? 'bg-pop text-on-pop'
+                    : 'text-ink-2 hover:text-ink'
                 }`}
               >
                 {m.label}
@@ -699,21 +644,58 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
             ))}
           </div>
 
+          {/* Period: top trends of the day / week / month / year */}
+          {!isPastTab && (
+            <div
+              role="group"
+              aria-label={lang === 'fr' ? 'Période' : 'Period'}
+              className="h-[42px] inline-flex items-center p-1 rounded-full bg-canvas border border-line"
+            >
+              {(
+                [
+                  { id: 'all', label: lang === 'fr' ? 'Tout' : 'All' },
+                  { id: 'day', label: lang === 'fr' ? 'Jour' : 'Day' },
+                  { id: 'week', label: lang === 'fr' ? 'Semaine' : 'Week' },
+                  { id: 'month', label: lang === 'fr' ? 'Mois' : 'Month' },
+                  { id: 'year', label: lang === 'fr' ? 'Année' : 'Year' },
+                ] as { id: PeriodFilter; label: string }[]
+              ).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onUpdateFilters({ period: p.id })}
+                  title={
+                    p.id === 'all'
+                      ? undefined
+                      : lang === 'fr'
+                      ? `Apparus depuis ${PERIOD_MAX_DAYS[p.id as Exclude<PeriodFilter, 'all'>]} j max`
+                      : `Emerged within ${PERIOD_MAX_DAYS[p.id as Exclude<PeriodFilter, 'all'>]}d`
+                  }
+                  className={`px-2.5 py-1 rounded-full text-[11.5px] font-semibold transition-colors ${
+                    filters.period === p.id ? 'bg-pop text-on-pop' : 'text-ink-2 hover:text-ink'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           {!isPastTab && (
             <button
               type="button"
               onClick={() => setWatchlistOnly((w) => !w)}
               className={`h-[42px] inline-flex items-center gap-1.5 px-3.5 rounded-full text-[12.5px] font-medium border transition-colors ${
                 watchlistOnly
-                  ? 'bg-[#EBF5EE] dark:bg-[#263628] border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C]'
-                  : 'bg-[#FFFFFF] dark:bg-[#24221F] hover:bg-[#FBF9F4] dark:hover:bg-[#33302B] border-[#EAE4D9] dark:border-[#3E3B35] text-[#22201D] dark:text-[#F5F2EC]'
+                  ? 'bg-accent-soft border-accent-line text-accent'
+                  : 'bg-surface hover:bg-soft border-line text-ink'
               }`}
             >
               <Bookmark
                 className={`w-3.5 h-3.5 ${
                   watchlistOnly
-                    ? 'text-[#1F6F43] dark:text-[#81B64C] fill-current'
-                    : 'text-[#625C53] dark:text-[#B5AFA4]'
+                    ? 'text-accent fill-current'
+                    : 'text-ink-2'
                 }`}
               />
               <span>{c.shortlistedBtn}</span>
@@ -727,14 +709,14 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
             aria-expanded={refineOpen}
             className={`h-[42px] inline-flex items-center gap-1.5 px-3.5 rounded-full text-[12.5px] font-medium border transition-colors ${
               refineOpen || secondaryRefineCount > 0
-                ? 'bg-[#EBF5EE] dark:bg-[#263628] border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C]'
-                : 'bg-[#FFFFFF] dark:bg-[#24221F] hover:bg-[#FBF9F4] dark:hover:bg-[#33302B] border-[#EAE4D9] dark:border-[#3E3B35] text-[#22201D] dark:text-[#F5F2EC]'
+                ? 'bg-accent-soft border-accent-line text-accent'
+                : 'bg-surface hover:bg-soft border-line text-ink'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>{c.refineFilters}</span>
             {secondaryRefineCount > 0 && (
-              <span className="font-mono text-[10.5px] px-1.5 py-0.2 rounded-full bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]">
+              <span className="font-mono text-[11px] px-1.5 py-0.2 rounded-full bg-pop text-on-pop">
                 {secondaryRefineCount}
               </span>
             )}
@@ -748,16 +730,16 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
           {/* List | Cards View Mode Switcher */}
           <div
             role="group"
-            aria-label="Layout view"
-            className="h-[42px] inline-flex items-center p-1 rounded-full bg-[#F4F0E8] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35]"
+            aria-label={tr('Layout view', lang)}
+            className="h-[42px] inline-flex items-center p-1 rounded-full bg-canvas border border-line"
           >
             <button
               type="button"
               onClick={() => setViewMode('list')}
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-[#FFFFFF] dark:bg-[#3A3731] text-[#22201D] dark:text-[#F5F2EC] shadow-xs'
-                  : 'text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC]'
+                  ? 'bg-surface text-ink shadow-xs'
+                  : 'text-ink-2 hover:text-ink'
               }`}
             >
               <LayoutList className="w-3.5 h-3.5" />
@@ -768,8 +750,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               onClick={() => setViewMode('cards')}
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold transition-colors ${
                 viewMode === 'cards'
-                  ? 'bg-[#FFFFFF] dark:bg-[#3A3731] text-[#22201D] dark:text-[#F5F2EC] shadow-xs'
-                  : 'text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC]'
+                  ? 'bg-surface text-ink shadow-xs'
+                  : 'text-ink-2 hover:text-ink'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -780,35 +762,35 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
 
         {/* Collapsible Secondary Filters Drawer */}
         {refineOpen && (
-          <div className="pt-3 border-t border-[#EFEAE0] dark:border-[#3E3B35] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-modal-in">
-            <label className="space-y-1 text-[11px] font-medium text-[#625C53] dark:text-[#B5AFA4]">
+          <div className="pt-3 border-t border-line grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-modal-in">
+            <label className="space-y-1 text-[11px] font-medium text-ink-2">
               <span>{c.audienceFilterLabel}</span>
               <select
-                aria-label="Audience"
+                aria-label={tr('Audience', lang)}
                 value={filters.persona}
                 onChange={(e) =>
                   onUpdateFilters({ persona: e.target.value as PersonaFilter })
                 }
-                className="w-full h-[36px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-medium text-[#22201D] dark:text-[#F5F2EC]"
+                className="w-full h-[36px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-medium text-ink"
               >
                 {PERSONA_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
-                    {opt === 'All Audiences' ? c.audienceAll : opt}
+                    {opt === 'All Audiences' ? c.audienceAll : tr(opt, lang)}
                   </option>
                 ))}
               </select>
             </label>
 
             {!isPastTab && (
-              <label className="space-y-1 text-[11px] font-medium text-[#625C53] dark:text-[#B5AFA4]">
+              <label className="space-y-1 text-[11px] font-medium text-ink-2">
                 <span>{c.windowFilterLabel}</span>
                 <select
-                  aria-label="Window"
+                  aria-label={tr('Window', lang)}
                   value={filters.maturity}
                   onChange={(e) =>
                     onUpdateFilters({ maturity: e.target.value as MaturityFilter })
                   }
-                  className="w-full h-[36px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-medium text-[#22201D] dark:text-[#F5F2EC]"
+                  className="w-full h-[36px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-medium text-ink"
                 >
                   {MATURITY_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -823,15 +805,15 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               </label>
             )}
 
-            <label className="space-y-1 text-[11px] font-medium text-[#625C53] dark:text-[#B5AFA4]">
+            <label className="space-y-1 text-[11px] font-medium text-ink-2">
               <span>{c.certaintyFilterLabel}</span>
               <select
-                aria-label="Certainty"
+                aria-label={tr('Certainty', lang)}
                 value={filters.certainty}
                 onChange={(e) =>
                   onUpdateFilters({ certainty: e.target.value as CertaintyFilter })
                 }
-                className="w-full h-[36px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-medium text-[#22201D] dark:text-[#F5F2EC]"
+                className="w-full h-[36px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-medium text-ink"
               >
                 {CERTAINTY_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -843,15 +825,15 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               </select>
             </label>
 
-            <label className="space-y-1 text-[11px] font-medium text-[#625C53] dark:text-[#B5AFA4]">
+            <label className="space-y-1 text-[11px] font-medium text-ink-2">
               <span>{c.sortByLabel}</span>
               <select
-                aria-label="Sort by"
+                aria-label={tr('Sort by', lang)}
                 value={filters.sortBy}
                 onChange={(e) =>
                   onUpdateFilters({ sortBy: e.target.value as SortOption })
                 }
-                className="w-full h-[36px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] font-medium text-[#22201D] dark:text-[#F5F2EC]"
+                className="w-full h-[36px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] font-medium text-ink"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -870,9 +852,9 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
         )}
 
         {/* Row 2: Social Media Logo Pills */}
-        <div className="pt-3 border-t border-[#EFEAE0] dark:border-[#3E3B35] flex flex-wrap items-center justify-between gap-2">
+        <div className="pt-3 border-t border-line flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11.5px] font-medium text-[#625C53] dark:text-[#B5AFA4] mr-1">
+            <span className="text-[11.5px] font-medium text-ink-2 mr-1">
               {c.platformLabel}
             </span>
             <button
@@ -880,13 +862,13 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               onClick={() => onUpdateFilters({ platform: 'All' })}
               className={`px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors duration-150 ${
                 filters.platform === 'All'
-                  ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]'
-                  : 'bg-[#FBF9F4] dark:bg-[#24221F] text-[#4F4A42] dark:text-[#B5AFA4] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] border border-[#EAE4D9] dark:border-[#3E3B35]'
+                  ? 'bg-pop text-on-pop'
+                  : 'bg-soft text-ink-2 hover:bg-canvas border border-line'
               }`}
             >
               {c.allSources}
             </button>
-            {ALL_PLATFORMS.map((plat) => {
+            {visiblePlatforms.map((plat) => {
               const active = filters.platform === plat;
               return (
                 <button
@@ -897,8 +879,8 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                   }
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors duration-150 ${
                     active
-                      ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]'
-                      : 'bg-[#FFFFFF] dark:bg-[#24221F] text-[#2C2A26] dark:text-[#E5E2D9] hover:bg-[#FBF9F4] dark:hover:bg-[#383632] border border-[#EAE4D9] dark:border-[#3E3B35]'
+                      ? 'bg-pop text-on-pop'
+                      : 'bg-surface text-ink hover:bg-soft border border-line'
                   }`}
                 >
                   <PlatformBrandIcon platform={plat} size={13} />
@@ -916,7 +898,7 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 setPastArchetype('All Eras');
                 onResetFilters();
               }}
-              className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#B42318] dark:text-[#F87171] hover:underline"
+              className="inline-flex items-center gap-1 text-[12px] font-semibold text-danger hover:underline"
             >
               <FilterX className="w-3.5 h-3.5" />
               <span>
@@ -929,11 +911,11 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
 
       {/* Empty State / Ranking List OR Editorial Cards */}
       {filteredAndSorted.length === 0 ? (
-        <div className="rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] p-12 text-center shadow-card">
-          <div className="text-[15px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+        <div className="rounded-[20px] bg-surface border border-line p-12 text-center shadow-card">
+          <div className="text-[15px] font-semibold text-ink">
             {c.noMatchTitle}
           </div>
-          <p className="text-[13px] text-[#625C53] dark:text-[#B5AFA4] mt-1">
+          <p className="text-[13px] text-ink-2 mt-1">
             {c.noMatchSub}
           </p>
           <button
@@ -943,14 +925,14 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               setPastArchetype('All Eras');
               onResetFilters();
             }}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-semibold bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-semibold bg-pop text-on-pop"
           >
             <FilterX className="w-3.5 h-3.5" />
             <span>{c.resetFilters}</span>
           </button>
         </div>
       ) : viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="tilt-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredAndSorted.map((trend, index) => {
             const rankNum = index + 1;
             const isSelected = selectedTrendId === trend.id;
@@ -968,15 +950,15 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 }}
                 role="button"
                 tabIndex={0}
-                className={`card-humanist group rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border overflow-hidden cursor-pointer flex flex-col justify-between ${
+                className={`card-humanist group rounded-[20px] bg-surface border overflow-hidden cursor-pointer flex flex-col justify-between ${
                   isSelected
-                    ? 'border-[#1F6F43] dark:border-[#81B64C] ring-2 ring-[#1F6F43]/15'
-                    : 'border-[#EAE4D9] dark:border-[#3E3B35] shadow-card'
+                    ? 'border-accent ring-2 ring-accent/15'
+                    : 'border-line shadow-card'
                 }`}
               >
                 <div>
                   {/* 16:9 Editorial Visual Header */}
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#22201D]">
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#1D1D1F]">
                     <TrendThumbnail trend={trend} variant="hero" />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
                       <span className="font-mono text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#22201D]/80 text-[#FFFFFF] backdrop-blur-xs">
@@ -984,21 +966,18 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                       </span>
                       <MarketBadge market={trend.market} />
                       {trend.liveMeta && (
-                        <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EBF5EE]/95 text-[#1F6F43]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#1F6F43]" />
-                          <span>Live</span>
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-soft/95 text-accent">
+                          <span className="w-1.5 h-1.5 rounded-full bg-pop" />
+                          <span>{tr('Live', lang)}</span>
                         </span>
                       )}
                     </div>
                     <div className="absolute top-3 right-3">
-                      <GradeBadge
-                        score={trend.emergenceScore}
-                        maturity={trend.maturity}
-                      />
+                      <VerdictBadge trend={trend} lang={lang} />
                     </div>
                     <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 text-[#FFFFFF]">
                       <span className="inline-flex items-center gap-1 text-[11.5px] font-medium bg-[#22201D]/75 backdrop-blur-xs px-2.5 py-0.5 rounded-full truncate max-w-[70%]">
-                        <UserCheck className="w-3 h-3 shrink-0 text-[#86EFAC]" />
+                        <UserCheck className="w-3 h-3 shrink-0 text-accent" />
                         <span className="truncate">
                           {c.byCreator} {trend.viralVideo.creator.handle}
                         </span>
@@ -1023,14 +1002,14 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                         />
                       </div>
                       <div className="flex items-baseline gap-1.5">
-                        <span className="font-display text-[17px] font-extrabold text-[#22201D] dark:text-[#F5F2EC] tabular-nums">
+                        <span className="font-display text-[17px] font-extrabold text-ink tabular-nums">
                           {trend.emergenceScore}
                         </span>
                         <span
                           className={`font-mono text-[11px] font-semibold tabular-nums ${
                             trend.velocity7d >= 0
-                              ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                              : 'text-[#B42318] dark:text-[#F87171]'
+                              ? 'text-accent'
+                              : 'text-danger'
                           }`}
                         >
                           {trend.velocity7d >= 0
@@ -1040,11 +1019,11 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                       </div>
                     </div>
 
-                    <h3 className="font-display text-[15px] font-bold text-[#22201D] dark:text-[#F5F2EC] group-hover:text-[#1F6F43] dark:group-hover:text-[#81B64C] transition-colors leading-[1.3]">
+                    <h3 className="font-display text-[15px] font-bold text-ink group-hover:text-accent transition-colors leading-[1.3]">
                       {trend.title}
                     </h3>
 
-                    <p className="text-[12.5px] text-[#625C53] dark:text-[#B5AFA4] leading-[1.45] line-clamp-2">
+                    <p className="text-[12.5px] text-ink-2 leading-[1.45] line-clamp-2">
                       {trend.hook}
                     </p>
 
@@ -1065,15 +1044,15 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                 </div>
 
                 {/* Card Footer */}
-                <div className="px-4.5 py-3 bg-[#FBF9F4] dark:bg-[#24221F] border-t border-[#EFEAE0] dark:border-[#3E3B35] flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                <div className="px-4.5 py-3 bg-soft border-t border-line flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <CertaintyBadge certainty={trend.certainty} lang={lang} />
                     {!isPastTab && (
                       <WatchlistPill status={trend.watchlistStatus} lang={lang} />
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                     {!isPastTab && (
                       <button
                         type="button"
@@ -1082,14 +1061,14 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                           onQuickToggleWatchlist(trend);
                         }}
                         aria-label={
-                          isShortlisted
+                          tr(isShortlisted
                             ? 'Remove from Watchlist'
-                            : 'Add to Watchlist'
+                            : 'Add to Watchlist', lang)
                         }
                         className={`w-[32px] h-[32px] inline-flex items-center justify-center rounded-full border transition-colors ${
                           isShortlisted
-                            ? 'bg-[#EBF5EE] dark:bg-[#263628] border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C]'
-                            : 'bg-[#FFFFFF] dark:bg-[#2E2C28] border-[#EAE4D9] dark:border-[#3E3B35] text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D]'
+                            ? 'bg-accent-soft border-accent-line text-accent'
+                            : 'bg-surface border-line text-ink-2 hover:text-ink'
                         }`}
                       >
                         <Bookmark
@@ -1107,13 +1086,13 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                         e.stopPropagation();
                         onSelectTrend(trend.id, rankNum, { focusVote: true });
                       }}
-                      className="h-[32px] inline-flex items-center gap-1.5 px-2.5 rounded-full bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] hover:border-[#1F6F43]/40 transition-colors"
+                      className="h-[32px] inline-flex items-center gap-1.5 px-2.5 rounded-full bg-surface border border-line hover:border-accent/40 transition-colors"
                     >
                       <ArrowUp
-                        className="w-3 h-3 text-[#22201D] dark:text-[#F5F2EC]"
+                        className="w-3 h-3 text-ink"
                         strokeWidth={2.1}
                       />
-                      <span className="font-mono text-[12px] font-semibold text-[#22201D] dark:text-[#F5F2EC] tabular-nums">
+                      <span className="font-mono text-[12px] font-semibold text-ink tabular-nums">
                         {trend.votes.length}
                       </span>
                       {trend.votes.length > 0 && (
@@ -1136,18 +1115,18 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
           })}
         </div>
       ) : (
-        <div className="rounded-[20px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] shadow-card overflow-visible">
+        <div className="rounded-[20px] bg-surface border border-line shadow-card overflow-visible">
           {/* Table Header */}
-          <div className="hidden lg:grid lg:grid-cols-[44px_38px_minmax(0,1fr)_126px_174px_118px] gap-4 px-6 py-3.5 bg-[#FBF9F4] dark:bg-[#24221F] border-b border-[#EAE4D9] dark:border-[#3E3B35] text-[12px] font-semibold text-[#625C53] dark:text-[#B5AFA4] rounded-t-[20px]">
+          <div className="hidden lg:grid lg:grid-cols-[44px_96px_minmax(0,1fr)_126px_174px_118px] gap-4 px-6 py-3.5 bg-soft border-b border-line text-[12px] font-semibold text-ink-2 rounded-t-[20px]">
             <div>#</div>
-            <div>Grade</div>
+            <div>{lang === 'fr' ? 'Verdict' : 'Verdict'}</div>
             <div>{isPastTab ? c.colPastTitle : c.colTitle}</div>
             <div className="text-right">{c.colScore}</div>
             <div>{c.colStatus}</div>
             <div className="text-right">{c.colActions}</div>
           </div>
 
-          <div className="divide-y divide-[#EFEAE0] dark:divide-[#3E3B35]">
+          <div className="divide-y divide-line">
             {filteredAndSorted.map((trend, index) => {
               const rankNum = index + 1;
               const isSelected = selectedTrendId === trend.id;
@@ -1166,71 +1145,68 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                   }}
                   role="button"
                   tabIndex={0}
-                  className={`group relative grid grid-cols-1 lg:grid-cols-[44px_38px_minmax(0,1fr)_126px_174px_118px] gap-3.5 lg:gap-4 items-center px-6 py-5 cursor-pointer transition-colors duration-150 ${
+                  className={`group relative grid grid-cols-1 lg:grid-cols-[44px_96px_minmax(0,1fr)_126px_174px_118px] gap-3.5 lg:gap-4 items-center px-4 sm:px-6 py-5 cursor-pointer transition-colors duration-150 ${
                     isSelected
-                      ? 'bg-[#EEF6F0] dark:bg-[#263628]/60'
-                      : 'hover:bg-[#FCFBF8] dark:hover:bg-[#35332E]'
+                      ? 'bg-accent-soft'
+                      : 'hover:bg-soft'
                   }`}
                 >
                   {isSelected && (
                     <span
                       className={`absolute left-0 top-2 bottom-2 w-[3.5px] rounded-r-full ${
                         isPastTab
-                          ? 'bg-[#8E3535] dark:bg-[#F29C9C]'
-                          : 'bg-[#1F6F43] dark:bg-[#81B64C]'
+                          ? 'bg-gold'
+                          : 'bg-pop'
                       }`}
                     />
                   )}
 
                   {/* 1. Rank & Movement */}
                   <div className="flex lg:flex-col items-baseline lg:items-start gap-2 lg:gap-0.5">
-                    <span className="font-mono text-[15px] font-bold text-[#22201D] dark:text-[#F5F2EC] tabular-nums">
+                    <span className="font-mono text-[15px] font-bold text-ink tabular-nums">
                       #{String(rankNum).padStart(2, '0')}
                     </span>
                     {trend.rankMovement.type === 'up' && (
-                      <span className="font-mono text-[11px] font-medium text-[#1F6F43] dark:text-[#81B64C] tabular-nums">
+                      <span className="font-mono text-[11px] font-medium text-accent tabular-nums">
                         ▲ +{trend.rankMovement.delta}
                       </span>
                     )}
                     {trend.rankMovement.type === 'down' && (
-                      <span className="font-mono text-[11px] font-medium text-[#B42318] dark:text-[#F87171] tabular-nums">
+                      <span className="font-mono text-[11px] font-medium text-danger tabular-nums">
                         ▼ -{trend.rankMovement.delta}
                       </span>
                     )}
                     {trend.rankMovement.type === 'new' && (
-                      <span className="font-mono text-[10px] font-semibold text-[#B45309] dark:text-[#FBBF24]">
-                        NEW
+                      <span className="font-mono text-[11px] font-semibold text-warn">
+                        {tr('NEW', lang)}
                       </span>
                     )}
                     {trend.rankMovement.type === 'same' && (
-                      <span className="font-mono text-[11px] text-[#8E877D]">
+                      <span className="font-mono text-[11px] text-ink-3">
                         —
                       </span>
                     )}
                   </div>
 
                   {/* 2. Grade Badge */}
-                  <div>
-                    <GradeBadge
-                      score={trend.emergenceScore}
-                      maturity={trend.maturity}
-                    />
+                  <div className="hidden lg:block">
+                    <VerdictBadge trend={trend} lang={lang} />
                   </div>
 
                   {/* 3. Thumbnail + Title + Creator + 2-Line Hook + Badges */}
-                  <div className="flex items-start gap-4 min-w-0">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 min-w-0">
                     <TrendThumbnail trend={trend} variant="row" />
 
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2 min-w-0">
-                        <span className="font-display text-[14.5px] font-bold text-[#22201D] dark:text-[#F5F2EC] group-hover:text-[#1F6F43] dark:group-hover:text-[#81B64C] transition-colors leading-[1.3]">
+                        <span className="font-display text-[14.5px] font-bold text-ink group-hover:text-accent transition-colors leading-[1.3]">
                           {trend.title}
                         </span>
                         <MarketBadge market={trend.market} />
                         {trend.liveMeta && (
-                          <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#EBF5EE] dark:bg-[#263628] text-[#1F6F43] dark:text-[#81B64C] border border-[#CAE5D3] dark:border-[#395439] shrink-0">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#1F6F43] dark:bg-[#81B64C]" />
-                            <span>Live</span>
+                          <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-soft text-accent border border-accent-line shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-pop" />
+                            <span>{tr('Live', lang)}</span>
                           </span>
                         )}
                         {!isPastTab && (
@@ -1241,12 +1217,12 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                         )}
                       </div>
 
-                      <p className="text-[12.5px] text-[#625C53] dark:text-[#B5AFA4] leading-[1.45] line-clamp-2">
+                      <p className="text-[12.5px] text-ink-2 leading-[1.45] line-clamp-2">
                         {trend.hook}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1F6F43] dark:text-[#81B64C] mr-1">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-accent mr-1">
                           <UserCheck className="w-3 h-3" />
                           <span>
                             {c.byCreator} {trend.viralVideo.creator.handle}
@@ -1257,7 +1233,7 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                           <PlatformMiniBadge key={p} platform={p} />
                         ))}
                         {isPastTab && trend.pastEraMetadata && (
-                          <span className="font-mono text-[10.5px] px-2.5 py-0.5 rounded-full bg-[#FAF4F4] dark:bg-[#3A2727] text-[#8E3535] dark:text-[#F29C9C] border border-[#EAD4D4] dark:border-[#5D3838] truncate max-w-[260px]">
+                          <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-danger-soft text-danger border border-danger-line truncate max-w-[260px]">
                             {trend.pastEraMetadata.peakScale}
                           </span>
                         )}
@@ -1267,19 +1243,19 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
 
                   {/* 4. Breakout Score + Sparkline + 4-Pillar Meter */}
                   <div
-                    className="relative flex flex-col items-end"
+                    className="relative flex flex-col items-start lg:items-end"
                     onMouseEnter={() => setHoveredScoreId(trend.id)}
                     onMouseLeave={() => setHoveredScoreId(null)}
                   >
                     <div className="flex items-baseline gap-1.5">
-                      <span className="font-mono text-[16px] font-bold text-[#22201D] dark:text-[#F5F2EC] tabular-nums">
+                      <span className="font-mono text-[16px] font-bold text-ink tabular-nums">
                         {trend.emergenceScore}
                       </span>
                       <span
                         className={`font-mono text-[11px] font-medium tabular-nums ${
                           trend.velocity7d >= 0
-                            ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                            : 'text-[#B42318] dark:text-[#F87171]'
+                            ? 'text-accent'
+                            : 'text-danger'
                         }`}
                       >
                         {trend.velocity7d >= 0
@@ -1304,58 +1280,58 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                     {isScoreHovered && (
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        className="hidden lg:block absolute right-0 bottom-full mb-2 w-[300px] p-3.5 rounded-[14px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#494640] shadow-elevated z-40 text-left pointer-events-none"
+                        className="hidden lg:block absolute right-0 bottom-full mb-2 w-[300px] p-3.5 rounded-[14px] bg-surface border border-line shadow-elevated z-40 text-left pointer-events-none"
                       >
-                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#EAE4D9] dark:border-[#3E3B35]">
-                          <span className="text-[11px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-line">
+                          <span className="text-[11px] font-semibold text-ink">
                             {c.hoverTitle}
                           </span>
-                          <span className="font-mono text-[12px] font-semibold text-[#1F6F43] dark:text-[#81B64C]">
+                          <span className="font-mono text-[12px] font-semibold text-accent">
                             {trend.emergenceScore} / 100
                           </span>
                         </div>
                         <div className="space-y-1.5 text-[11px]">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#625C53] dark:text-[#B5AFA4]">
+                            <span className="text-ink-2">
                               {c.hoverRemix} ({trend.scoreBreakdown.remixes7d})
                             </span>
-                            <span className="font-mono font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                            <span className="font-mono font-medium text-ink">
                               {trend.scoreBreakdown.remixVelocity}/30
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#625C53] dark:text-[#B5AFA4]">
+                            <span className="text-ink-2">
                               {c.hoverCross} ({trend.scoreBreakdown.platformsCrossedDays})
                             </span>
-                            <span className="font-mono font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                            <span className="font-mono font-medium text-ink">
                               {trend.scoreBreakdown.crossPlatformJump}/25
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#625C53] dark:text-[#B5AFA4]">
+                            <span className="text-ink-2">
                               {c.hoverIntent} ({trend.scoreBreakdown.saveShareRatio})
                             </span>
-                            <span className="font-mono font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                            <span className="font-mono font-medium text-ink">
                               {trend.scoreBreakdown.audienceIntent}/25
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-[#625C53] dark:text-[#B5AFA4]">
+                            <span className="text-ink-2">
                               {c.hoverLift} ({trend.scoreBreakdown.anomalyMultiplier})
                             </span>
-                            <span className="font-mono font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                            <span className="font-mono font-medium text-ink">
                               {trend.scoreBreakdown.smallAccountLift}/20
                             </span>
                           </div>
                         </div>
-                        <div className="mt-2 pt-2 border-t border-[#EFEAE0] dark:border-[#3E3B35] flex items-center justify-between font-mono text-[10px] text-[#625C53] dark:text-[#B5AFA4]">
+                        <div className="mt-2 pt-2 border-t border-line flex items-center justify-between font-mono text-[11px] text-ink-2">
                           <span>
                             {trend.isPastTrend
                               ? c.hoverFooterPast
                               : c.hoverFooterActive}
                           </span>
                           {trend.liveMeta?.wikiViews14d && (
-                            <span className="text-[#1F6F43] dark:text-[#81B64C] font-medium">
+                            <span className="text-accent font-medium">
                               {(trend.liveMeta.wikiViews14d / 1000).toFixed(1)}K wiki/14d
                             </span>
                           )}
@@ -1385,14 +1361,14 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                           onQuickToggleWatchlist(trend);
                         }}
                         aria-label={
-                          isShortlisted
+                          tr(isShortlisted
                             ? 'Remove from Watchlist'
-                            : 'Add to Watchlist'
+                            : 'Add to Watchlist', lang)
                         }
                         className={`w-[34px] h-[34px] inline-flex items-center justify-center rounded-full border transition-colors ${
                           isShortlisted
-                            ? 'bg-[#EBF5EE] dark:bg-[#263628] border-[#CAE5D3] dark:border-[#395439] text-[#1F6F43] dark:text-[#81B64C]'
-                            : 'bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#FFFFFF] dark:hover:bg-[#383632] border-[#EAE4D9] dark:border-[#3E3B35] text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC]'
+                            ? 'bg-accent-soft border-accent-line text-accent'
+                            : 'bg-soft hover:bg-surface border-line text-ink-2 hover:text-ink'
                         }`}
                       >
                         <Bookmark
@@ -1410,13 +1386,13 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
                         e.stopPropagation();
                         onSelectTrend(trend.id, rankNum, { focusVote: true });
                       }}
-                      className="h-[34px] inline-flex items-center gap-1.5 px-2.5 rounded-full bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#FFFFFF] dark:hover:bg-[#383632] border border-[#EAE4D9] dark:border-[#3E3B35] hover:border-[#1F6F43]/40 transition-colors"
+                      className="h-[34px] inline-flex items-center gap-1.5 px-2.5 rounded-full bg-soft hover:bg-surface border border-line hover:border-accent/40 transition-colors"
                     >
                       <ArrowUp
-                        className="w-3 h-3 text-[#22201D] dark:text-[#F5F2EC]"
+                        className="w-3 h-3 text-ink"
                         strokeWidth={2.1}
                       />
-                      <span className="font-mono text-[12px] font-semibold text-[#22201D] dark:text-[#F5F2EC] tabular-nums">
+                      <span className="font-mono text-[12px] font-semibold text-ink tabular-nums">
                         {trend.votes.length}
                       </span>
                       {trend.votes.length > 0 && (
