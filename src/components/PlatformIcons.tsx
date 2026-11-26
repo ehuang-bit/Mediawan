@@ -68,6 +68,14 @@ export const PlatformBrandIcon: React.FC<{
         </svg>
       );
 
+    case 'Wikipedia':
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1.2" y="1.2" width="13.6" height="13.6" rx="3.2" fill="#FFFFFF" stroke="#1D1D1F" strokeWidth="0.9" />
+          <path d="M3.4 5.2L5.6 11L8 6.2L10.4 11L12.6 5.2" stroke="#1D1D1F" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+
     case 'Wattpad/Webtoon':
       return (
         <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">

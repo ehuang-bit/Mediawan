@@ -44,16 +44,25 @@ export type PlatformSource =
   | 'Facebook'
   | 'Reddit'
   | 'Google Trends'
+  | 'Wikipedia'
   | 'Wattpad/Webtoon'
   | 'Roblox/Twitch';
 
 export type ApiId =
-  | 'tiktok'
   | 'youtube'
-  | 'instagram'
-  | 'facebook'
+  | 'wikipedia'
+  | 'google_trends'
   | 'reddit'
-  | 'google_trends';
+  | 'tiktok'
+  | 'meta';
+
+/** live = collected automatically · snapshot = public export imported by hand · restricted = no access for a student team */
+export type SourceStatus = 'live' | 'snapshot' | 'restricted';
+
+export interface BilingualText {
+  fr: string;
+  en: string;
+}
 
 export interface ApiConnectorConfig {
   id: ApiId;
@@ -64,6 +73,12 @@ export interface ApiConnectorConfig {
   apiKey: string;
   endpointLabel: string;
   supportsBrowserFetch?: boolean;
+  status: SourceStatus;
+  /** What the radar takes from this source */
+  collects: BilingualText;
+  /** How we access it, and the rules we respect */
+  access: BilingualText;
+  docsUrl: string;
 }
 
 export type SortOption =

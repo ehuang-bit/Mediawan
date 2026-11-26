@@ -14,25 +14,26 @@ import {
 import { ActiveMainView, Sidebar } from './components/Sidebar';
 import { TopUtilityBar } from './components/TopUtilityBar';
 import {
+  matchesPeriodAndVerdict,
   RadarFilterState,
   SignalRadarView,
 } from './components/SignalRadarView';
 import { GreenlightDrawer } from './components/GreenlightDrawer';
-import { EditorialWatchlistView } from './components/EditorialWatchlistView';
 import { BacktestingView } from './components/BacktestingView';
 import { CsvImportModal } from './components/CsvImportModal';
 import { ApiManagerModal } from './components/ApiManagerModal';
 import { QuickGuideModal } from './components/QuickGuideModal';
+import { MobileNav } from './components/MobileNav';
 
 const STORAGE_KEYS = {
-  TRENDS: 'mediawan_radar_trends_v7',
-  FILTERS: 'mediawan_radar_filters_v7',
-  SIDEBAR: 'mediawan_radar_sidebar_collapsed_v7',
-  VIEW: 'mediawan_radar_active_view_v7',
-  BATCH_TS: 'mediawan_radar_batch_ts_v7',
-  APIS: 'mediawan_radar_apis_v7',
-  LANG: 'mediawan_radar_lang_v7',
-  THEME: 'mediawan_radar_theme_v7',
+  TRENDS: 'mediawan_radar_trends_v8',
+  FILTERS: 'mediawan_radar_filters_v8',
+  SIDEBAR: 'mediawan_radar_sidebar_collapsed_v8',
+  VIEW: 'mediawan_radar_active_view_v8',
+  BATCH_TS: 'mediawan_radar_batch_ts_v8',
+  APIS: 'mediawan_radar_apis_v8',
+  LANG: 'mediawan_radar_lang_v8',
+  THEME: 'mediawan_radar_theme_v8',
 };
 
 const DEFAULT_FILTERS: RadarFilterState = {
@@ -44,6 +45,8 @@ const DEFAULT_FILTERS: RadarFilterState = {
   certainty: 'All',
   platform: 'All',
   sortBy: 'Emergence Score (Default)',
+  period: 'all',
+  verdict: 'all',
 };
 
 function loadStoredJson<T>(key: string, fallback: T): T {
@@ -83,7 +86,7 @@ export const App: React.FC = () => {
   }));
 
   const [activeView, setActiveView] = useState<ActiveMainView>(() =>
-    loadStoredJson<ActiveMainView>(STORAGE_KEYS.VIEW, 'radar')
+    loadStoredJson<ActiveMainView>(STORAGE_KEYS.VIEW, 'radar') === 'backtesting' ? 'backtesting' : 'radar'
   );
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() =>
@@ -103,7 +106,7 @@ export const App: React.FC = () => {
   );
 
   const [backendOnline, setBackendOnline] = useState<boolean>(false);
-  const [syncStats, setSyncStats] = useState({
+  const [, setSyncStats] = useState({
     youtubeFeedsOk: 0,
     wikiFeedsOk: 0,
     durationMs: 0,
@@ -408,7 +411,9 @@ export const App: React.FC = () => {
 
   const visibleTrends = useMemo(() => {
     const disabledPlatforms = new Set(
-      apiConnectors.filter((c) => !c.enabled).map((c) => c.platform)
+      apiConnectors
+        .filter((c) => c.status !== 'restricted' && !c.enabled)
+        .map((c) => c.platform)
     );
     if (disabledPlatforms.size === 0) return trends;
     return trends.filter((t) =>
@@ -423,6 +428,7 @@ export const App: React.FC = () => {
       isPastTab ? Boolean(t.isPastTrend) : !t.isPastTrend
     );
     const matched = pool.filter((t) => {
+      if (!matchesPeriodAndVerdict(t, filters, isPastTab, lang)) return false;
       if (filters.market === 'FR' && !t.market.includes('FR')) return false;
       if (filters.market === 'EN' && !t.market.includes('EN')) return false;
       if (
@@ -487,7 +493,7 @@ export const App: React.FC = () => {
         return b.emergenceScore - a.emergenceScore;
       })
       .map((t) => t.id);
-  }, [visibleTrends, filters]);
+  }, [visibleTrends, filters, lang]);
 
   const currentDrawerIndex = selectedTrendId
     ? orderedRadarIds.indexOf(selectedTrendId)
@@ -509,44 +515,40 @@ export const App: React.FC = () => {
     () => visibleTrends.filter((t) => Boolean(t.isPastTrend)).length,
     [visibleTrends]
   );
-  const watchlistCount = useMemo(
-    () =>
-      visibleTrends.filter(
-        (t) => !t.isPastTrend && t.watchlistStatus !== 'Not Tracked'
-      ).length,
-    [visibleTrends]
-  );
   const activeApisCount = useMemo(
-    () => apiConnectors.filter((c) => c.enabled).length,
+    () => apiConnectors.filter((c) => c.status !== 'restricted' && c.enabled).length,
     [apiConnectors]
   );
 
+  const goToView = (view: ActiveMainView) => {
+    setActiveView(view);
+    mainScrollRef.current?.scrollTo({ top: 0 });
+  };
+
+  const goToRadar = () => {
+    if (filters.categoryTab === 'Past Trends') {
+      handleUpdateFilters({ categoryTab: 'All Signals' });
+    }
+    goToView('radar');
+  };
+
+  const goToPastTrends = () => {
+    handleUpdateFilters({ categoryTab: 'Past Trends', maturity: 'All' });
+    goToView('radar');
+  };
+
   return (
-    <div className="min-h-screen h-screen flex bg-[#FBF9F4] dark:bg-[#24221F] text-[#22201D] dark:text-[#F5F2EC] overflow-hidden transition-colors">
+    <div className="h-dvh flex bg-soft text-ink overflow-hidden transition-colors">
       <Sidebar
         activeView={activeView}
         isPastTabActive={filters.categoryTab === 'Past Trends'}
-        onSelectRadar={() => {
-          setActiveView('radar');
-          if (filters.categoryTab === 'Past Trends') {
-            handleUpdateFilters({ categoryTab: 'All Signals' });
-          }
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
-        onSelectPastTrends={() => {
-          setActiveView('radar');
-          handleUpdateFilters({ categoryTab: 'Past Trends', maturity: 'All' });
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
-        onSelectView={(v) => {
-          setActiveView(v);
-          mainScrollRef.current?.scrollTo({ top: 0 });
-        }}
+        onSelectRadar={goToRadar}
+        onSelectPastTrends={goToPastTrends}
+        onSelectView={goToView}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         activeSignalsCount={activeSignalsCount}
         pastTrendsCount={pastTrendsCount}
-        watchlistCount={watchlistCount}
         activeApisCount={activeApisCount}
         onOpenApiManager={() => setApiModalOpen(true)}
         onOpenQuickGuide={() => setQuickGuideOpen(true)}
@@ -561,10 +563,8 @@ export const App: React.FC = () => {
           onRefreshData={handleRefreshData}
           onOpenCsvModal={() => setCsvModalOpen(true)}
           apiConnectors={apiConnectors}
-          onToggleConnector={handleToggleConnector}
           onOpenApiManager={() => setApiModalOpen(true)}
           backendOnline={backendOnline}
-          syncStats={syncStats}
           lang={lang}
           onChangeLang={(next) => {
             setLang(next);
@@ -598,22 +598,20 @@ export const App: React.FC = () => {
             />
           )}
 
-          {activeView === 'watchlist' && (
-            <EditorialWatchlistView
-              trends={visibleTrends}
-              onSelectTrend={(id) => {
-                setSelectedTrendId(id);
-                setSelectedRankNumber(undefined);
-                setFocusVoteTrigger(0);
-              }}
-              onChangeWatchlist={handleChangeWatchlist}
-              onSwitchToRadar={() => setActiveView('radar')}
-              lang={lang}
-            />
-          )}
-
           {activeView === 'backtesting' && <BacktestingView lang={lang} />}
         </main>
+
+        <MobileNav
+          activeView={activeView}
+          isPastTabActive={filters.categoryTab === 'Past Trends'}
+          onSelectRadar={goToRadar}
+          onSelectPastTrends={goToPastTrends}
+          onSelectView={goToView}
+          onOpenApiManager={() => setApiModalOpen(true)}
+          onOpenQuickGuide={() => setQuickGuideOpen(true)}
+          onResetDemoData={handleResetDemoData}
+          lang={lang}
+        />
       </div>
 
       <GreenlightDrawer
@@ -677,9 +675,9 @@ export const App: React.FC = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] text-[12.5px] font-semibold shadow-elevated animate-modal-in"
+          className="fixed bottom-24 md:bottom-5 right-4 md:right-5 max-w-[calc(100vw-2rem)] z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-pop text-on-pop text-[12.5px] font-semibold shadow-elevated animate-modal-in"
         >
-          <CheckCircle2 className="w-4 h-4 text-[#DCFCE7] dark:text-[#191815] shrink-0" />
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}

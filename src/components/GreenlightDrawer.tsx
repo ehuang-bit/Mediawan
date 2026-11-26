@@ -35,13 +35,15 @@ import {
   MarketBadge,
   MaturityBadge,
   PlatformMiniBadge,
+  VerdictBadge,
 } from './SemanticBadges';
+import { getVerdict, verdictSentence } from '../utils/verdict';
 import { TrendThumbnail } from './TrendThumbnail';
 import {
   downloadTextFile,
   generateOnePagerMarkdown,
 } from '../utils/exportMarkdown';
-import { translateWatchlist, UI_COPY } from '../i18n';
+import { translateWatchlist, UI_COPY, tr, translateAge, translateDate } from '../i18n';
 
 interface GreenlightDrawerProps {
   trend: MicroTrend | null;
@@ -213,23 +215,23 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
   const uncertaintyStyles =
     trend.uncertaintyRisk.level === 'Low'
       ? {
-          bg: 'bg-[#F0F9F4] dark:bg-[#263628]',
-          border: 'border-[#CDEBD9] dark:border-[#395439]',
-          badgeBg: 'bg-[#166534] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]',
-          titleText: 'text-[#166534] dark:text-[#81B64C]',
+          bg: 'bg-accent-soft',
+          border: 'border-accent-line',
+          badgeBg: 'bg-pop text-on-pop',
+          titleText: 'text-accent',
         }
       : trend.uncertaintyRisk.level === 'Moderate'
       ? {
-          bg: 'bg-[#FDF7ED] dark:bg-[#3C2F1E]',
-          border: 'border-[#F4DFB8] dark:border-[#5C4629]',
-          badgeBg: 'bg-[#9A4D09] dark:bg-[#FBBF24] text-[#FFFFFF] dark:text-[#191815]',
-          titleText: 'text-[#9A4D09] dark:text-[#FBBF24]',
+          bg: 'bg-warn-soft',
+          border: 'border-warn-line',
+          badgeBg: 'bg-warn text-surface',
+          titleText: 'text-warn',
         }
       : {
-          bg: 'bg-[#FDF2F2] dark:bg-[#3A2525]',
-          border: 'border-[#F3CFCF] dark:border-[#5E3535]',
-          badgeBg: 'bg-[#991B1B] dark:bg-[#F87171] text-[#FFFFFF] dark:text-[#191815]',
-          titleText: 'text-[#991B1B] dark:text-[#F87171]',
+          bg: 'bg-danger-soft',
+          border: 'border-danger-line',
+          badgeBg: 'bg-gold text-on-gold',
+          titleText: 'text-danger',
         };
 
   const pillars = [
@@ -265,21 +267,21 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
     <div className="fixed inset-0 z-40 flex justify-end">
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-[#22201D]/30 dark:bg-black/55 backdrop-blur-[2px] animate-backdrop-in"
+        className="fixed inset-0 bg-ink/30 dark:bg-black/55 backdrop-blur-[2px] animate-backdrop-in"
       />
 
       <aside
         role="dialog"
         aria-modal="true"
         aria-label={trend.title}
-        className="relative z-10 w-full max-w-[630px] h-full rounded-l-[22px] bg-[#FFFFFF] dark:bg-[#2E2C28] shadow-drawer border-l border-[#EAE4D9] dark:border-[#3E3B35] flex flex-col overflow-hidden animate-drawer-in"
+        className="relative z-10 w-full max-w-[630px] h-full sm:rounded-l-[22px] bg-surface shadow-drawer border-l border-line flex flex-col overflow-hidden animate-drawer-in"
       >
         {/* Header */}
-        <div className="px-6 py-5 bg-[#FFFFFF] dark:bg-[#2E2C28] border-b border-[#EAE4D9] dark:border-[#3E3B35] shrink-0 space-y-3.5">
-          <div className="flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 bg-surface border-b border-line shrink-0 space-y-3.5">
+          <div className="flex flex-wrap-reverse items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               {rankNumber !== undefined && (
-                <span className="font-mono text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]">
+                <span className="font-mono text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-pop text-on-pop">
                   #{String(rankNumber).padStart(2, '0')}
                 </span>
               )}
@@ -298,7 +300,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 type="button"
                 disabled={!canNavigatePrev}
                 onClick={onNavigatePrev}
-                className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium bg-soft hover:bg-canvas text-ink border border-line disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>{c.prevBtn}</span>
@@ -307,7 +309,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 type="button"
                 disabled={!canNavigateNext}
                 onClick={onNavigateNext}
-                className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium bg-[#FBF9F4] dark:bg-[#24221F] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium bg-soft hover:bg-canvas text-ink border border-line disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
               >
                 <span>{c.nextBtn}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -316,14 +318,14 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 type="button"
                 onClick={onClose}
                 aria-label={c.closeBtn}
-                className="p-1.5 ml-1 rounded-full text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC] hover:bg-[#F4F0E8] dark:hover:bg-[#383632] transition-colors"
+                className="p-1.5 ml-1 rounded-full text-ink-2 hover:text-ink hover:bg-canvas transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <h2 className="font-display text-[20px] font-bold text-[#22201D] dark:text-[#F5F2EC] leading-[1.25]">
+          <h2 className="font-display text-[20px] font-bold text-ink leading-[1.25]">
             {trend.title}
           </h2>
 
@@ -332,7 +334,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
               <div className="flex items-center gap-2">
                 <label
                   htmlFor="drawer-watchlist-select"
-                  className="text-[12px] text-[#625C53] dark:text-[#B5AFA4]"
+                  className="text-[12px] text-ink-2"
                 >
                   {c.statusLabel}
                 </label>
@@ -345,7 +347,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                       e.target.value as WatchlistStatus
                     )
                   }
-                  className="h-[32px] px-3 rounded-full text-[12px] font-medium bg-[#FBF9F4] dark:bg-[#24221F] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none"
+                  className="h-[32px] px-3 rounded-full text-[12px] font-medium bg-soft text-ink border border-line focus:border-accent focus:outline-none"
                 >
                   {WATCHLIST_OPTIONS.map((status) => (
                     <option key={status} value={status}>
@@ -355,7 +357,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 </select>
               </div>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F8EFEF] dark:bg-[#3A2727] border border-[#EAD4D4] dark:border-[#5D3838] text-[11.5px] font-medium text-[#8E3535] dark:text-[#F29C9C]">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger-soft border border-danger-line text-[11.5px] font-medium text-danger">
                 <History className="w-3.5 h-3.5" />
                 <span>{c.archivedPill}</span>
               </span>
@@ -365,12 +367,12 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-[#FFFFFF] dark:bg-[#24221F] hover:bg-[#FBF9F4] dark:hover:bg-[#383632] text-[#22201D] dark:text-[#F5F2EC] border border-[#EAE4D9] dark:border-[#3E3B35] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium bg-surface hover:bg-soft text-ink border border-line transition-colors"
               >
                 {copiedLink ? (
-                  <Check className="w-3.5 h-3.5 text-[#1F6F43] dark:text-[#81B64C]" />
+                  <Check className="w-3.5 h-3.5 text-accent" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-[#625C53] dark:text-[#B5AFA4]" />
+                  <Copy className="w-3.5 h-3.5 text-ink-2" />
                 )}
                 <span>{copiedLink ? c.copied : c.copyLink}</span>
               </button>
@@ -378,7 +380,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleExportMarkdown}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] dark:hover:bg-[#93C75D] text-[#FFFFFF] dark:text-[#191815] transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>{c.exportOnePager}</span>
@@ -388,30 +390,87 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 sm:py-6 space-y-6">
+          {/* Verdict: is it becoming a trend? */}
+          {(() => {
+            const v = getVerdict(trend, lang);
+            const fr = lang === 'fr';
+            return (
+              <section className="rounded-[16px] border-2 border-edge bg-surface shadow-card overflow-hidden">
+                <div className="px-4 py-3.5 bg-soft border-b border-line flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[12px] font-semibold text-ink-2">
+                      {fr ? 'Ça devient une tendance ?' : 'Is it becoming a trend?'}
+                    </span>
+                    <VerdictBadge trend={trend} lang={lang} size="md" />
+                  </div>
+                  <span className="font-mono text-[12px] font-semibold text-ink tabular-nums">
+                    {v.passedCount}/5 {fr ? 'critères' : 'checks'}
+                  </span>
+                </div>
+                <div className="px-4 py-3.5 space-y-3">
+                  <p className="text-[13px] font-medium text-ink leading-snug">
+                    {verdictSentence(v.verdict, lang)}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {v.checks.map((ck) => (
+                      <li key={ck.id} className="flex items-start gap-2 text-[12.5px]">
+                        {ck.passed ? (
+                          <CheckCircle2 className="w-4 h-4 mt-px shrink-0 text-accent" />
+                        ) : (
+                          <MinusCircle className="w-4 h-4 mt-px shrink-0 text-ink-3" />
+                        )}
+                        <span className={ck.passed ? 'text-ink' : 'text-ink-2'}>
+                          <span className="font-semibold">{ck.label}</span>
+                          <span className="text-ink-2"> · {ck.detail}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {!trend.isPastTrend && (
+                    <div className="pt-3 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[12px]">
+                      <div>
+                        <div className="text-ink-3">{fr ? 'Décision éclairée' : 'Decision informed'}</div>
+                        <div className="font-semibold text-ink">{v.decisionType}</div>
+                      </div>
+                      <div>
+                        <div className="text-ink-3">{fr ? 'Équipe concernée' : 'Team'}</div>
+                        <div className="font-semibold text-ink">{trend.recommendation.targetPole}</div>
+                      </div>
+                      <div>
+                        <div className="text-ink-3">{fr ? 'Fenêtre' : 'Window'}</div>
+                        <div className="font-semibold text-ink">{tr(trend.recommendation.targetWindow, lang)}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            );
+          })()}
+
           {/* 4-Pillar Scorecard */}
           <section className="space-y-3.5">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-[14px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-[14px] bg-soft border border-line">
               <div>
-                <div className="text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
+                <div className="text-[11px] text-ink-2">
                   {c.colScore}
                 </div>
-                <div className="font-mono text-[19px] font-bold text-[#22201D] dark:text-[#F5F2EC] mt-0.5 tabular-nums">
+                <div className="font-mono text-[19px] font-bold text-ink mt-0.5 tabular-nums">
                   {trend.emergenceScore}
-                  <span className="text-[11px] font-normal text-[#625C53] dark:text-[#B5AFA4]">
+                  <span className="text-[11px] font-normal text-ink-2">
                     /100
                   </span>
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
+                <div className="text-[11px] text-ink-2">
                   {c.velocityLabel}
                 </div>
                 <div
                   className={`font-mono text-[16px] font-semibold mt-1 tabular-nums ${
                     trend.velocity7d >= 0
-                      ? 'text-[#1F6F43] dark:text-[#81B64C]'
-                      : 'text-[#991B1B] dark:text-[#F87171]'
+                      ? 'text-accent'
+                      : 'text-danger'
                   }`}
                 >
                   {trend.velocity7d >= 0
@@ -420,26 +479,26 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
+                <div className="text-[11px] text-ink-2">
                   {c.hoverLift}
                 </div>
-                <div className="font-mono text-[16px] font-semibold text-[#22201D] dark:text-[#F5F2EC] mt-1 tabular-nums">
+                <div className="font-mono text-[16px] font-semibold text-ink mt-1 tabular-nums">
                   {trend.scoreBreakdown.anomalyMultiplier}
                 </div>
               </div>
               <div>
-                <div className="text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
+                <div className="text-[11px] text-ink-2">
                   t0
                 </div>
-                <div className="font-mono text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC] mt-1.5">
+                <div className="font-mono text-[13px] font-semibold text-ink mt-1.5">
                   {trend.t0Date}
                 </div>
               </div>
             </div>
 
-            <div className="p-4 rounded-[14px] bg-[#FFFFFF] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-3">
+            <div className="p-4 rounded-[14px] bg-surface border border-line space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[12.5px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+                <span className="text-[12.5px] font-semibold text-ink">
                   {c.scoreCardTitle}
                 </span>
                 <CertaintyBadge certainty={trend.certainty} lang={lang} />
@@ -451,29 +510,29 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   return (
                     <div
                       key={p.label}
-                      className="p-3 rounded-[10px] bg-[#FBF9F4] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-1.5"
+                      className="p-3 rounded-[10px] bg-soft border border-line space-y-1.5"
                     >
                       <div className="flex items-center justify-between gap-2 text-[11.5px]">
-                        <span className="font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                        <span className="font-medium text-ink">
                           {p.label}
                         </span>
-                        <span className="font-mono font-semibold text-[#1F6F43] dark:text-[#81B64C] tabular-nums">
+                        <span className="font-mono font-semibold text-accent tabular-nums">
                           {p.score}/{p.max}
                         </span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[#EAE4D9] dark:bg-[#43403A] overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-line overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             trend.isPastTrend
-                              ? 'bg-[#991B1B] dark:bg-[#F29C9C]'
+                              ? 'bg-gold'
                               : trend.maturity === 'Early Spark'
-                              ? 'bg-[#B45309] dark:bg-[#FBBF24]'
-                              : 'bg-[#1F6F43] dark:bg-[#81B64C]'
+                              ? 'bg-warn'
+                              : 'bg-pop'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="font-mono text-[10.5px] text-[#625C53] dark:text-[#B5AFA4]">
+                      <div className="font-mono text-[11px] text-ink-2">
                         {p.proof}
                       </div>
                     </div>
@@ -482,21 +541,21 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
               </div>
 
               {!trend.isPastTrend ? (
-                <div className="pt-2.5 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-1.5">
+                <div className="pt-2.5 border-t border-line space-y-1.5">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-medium text-[#22201D] dark:text-[#F5F2EC]">
+                    <span className="font-medium text-ink">
                       {c.lifecycleTitle}
                     </span>
-                    <span className="font-mono font-semibold text-[#1F6F43] dark:text-[#81B64C]">
+                    <span className="font-mono font-semibold text-accent">
                       {trend.daysSinceT0}{lang === 'fr' ? 'j' : 'd'} {c.dayOf21}
                     </span>
                   </div>
-                  <div className="relative h-2 rounded-full bg-[#F4F0E8] dark:bg-[#43403A] overflow-hidden">
+                  <div className="relative h-2 rounded-full bg-canvas overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
                         trend.daysSinceT0 <= 7
-                          ? 'bg-[#B45309] dark:bg-[#FBBF24]'
-                          : 'bg-[#1F6F43] dark:bg-[#81B64C]'
+                          ? 'bg-warn'
+                          : 'bg-pop'
                       }`}
                       style={{ width: `${lifecyclePct}%` }}
                     />
@@ -504,24 +563,24 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 </div>
               ) : (
                 trend.pastEraMetadata && (
-                  <div className="pt-3 border-t border-[#EAE4D9] dark:border-[#3E3B35]">
-                    <div className="p-3.5 rounded-[12px] bg-[#FAF4F4] dark:bg-[#3A2727] border border-[#EAD4D4] dark:border-[#5D3838] space-y-1.5">
+                  <div className="pt-3 border-t border-line">
+                    <div className="p-3.5 rounded-[12px] bg-danger-soft border border-danger-line space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[12px] font-semibold text-[#8E3535] dark:text-[#F29C9C]">
+                        <span className="text-[12px] font-semibold text-danger">
                           {c.pastPostMortemTitle}
                         </span>
-                        <span className="font-mono text-[11px] font-semibold text-[#8E3535] dark:text-[#F29C9C]">
+                        <span className="font-mono text-[11px] font-semibold text-danger">
                           {trend.pastEraMetadata.eraLabel}
                         </span>
                       </div>
-                      <div className="text-[11.5px] text-[#373633] dark:text-[#E5DFD5]">
+                      <div className="text-[11.5px] text-ink-2">
                         <strong>{c.peakScaleLabel}:</strong> {trend.pastEraMetadata.peakScale}
                       </div>
-                      <div className="text-[11.5px] text-[#373633] dark:text-[#E5DFD5]">
+                      <div className="text-[11.5px] text-ink-2">
                         <strong>{c.lifespanLabel}:</strong> {trend.pastEraMetadata.lifespanLabel}
                       </div>
-                      <p className="text-[12px] text-[#373633] dark:text-[#E5DFD5] leading-[1.4]">
-                        <strong className="text-[#8E3535] dark:text-[#F29C9C]">
+                      <p className="text-[12px] text-ink-2 leading-[1.4]">
+                        <strong className="text-danger">
                           {c.whyFadedLabel}:
                         </strong>{' '}
                         {trend.pastEraMetadata.whyItFaded}
@@ -534,17 +593,17 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
           </section>
 
           {/* 16:9 Viral Video Card */}
-          <section className="pt-6 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-3">
+          <section className="pt-6 border-t border-line space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+              <h3 className="text-[13px] font-semibold text-ink">
                 {trend.isPastTrend ? c.pastVideoTitle : c.viralVideoTitle}
               </h3>
-              <span className="font-mono text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
-                {trend.viralVideo.uploadedAgo} · {trend.viralVideo.uploadDate}
+              <span className="font-mono text-[11px] text-ink-2">
+                {translateAge(trend.viralVideo.uploadedAgo, lang)} · {translateDate(trend.viralVideo.uploadDate, lang)}
               </span>
             </div>
 
-            <div className="rounded-[16px] border border-[#EAE4D9] dark:border-[#3E3B35] overflow-hidden bg-[#FFFFFF] dark:bg-[#24221F]">
+            <div className="rounded-[16px] border border-line overflow-hidden bg-surface">
               <div
                 onClick={() => setPreviewExpanded((p) => !p)}
                 role="button"
@@ -555,7 +614,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     setPreviewExpanded((p) => !p);
                   }
                 }}
-                className="relative aspect-video w-full overflow-hidden cursor-pointer group select-none bg-[#22201D]"
+                className="relative aspect-video w-full overflow-hidden cursor-pointer group select-none bg-[#1D1D1F]"
               >
                 <div className="absolute inset-0">
                   <TrendThumbnail trend={trend} variant="hero" />
@@ -567,7 +626,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     <span className="px-2.5 py-0.5 rounded-full bg-[#191815]/85 text-[#FFFFFF] font-mono text-[11px] font-medium border border-[#FFFFFF]/15">
                       {trend.viralVideo.platform}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#FFFFFF]/90 text-[#22201D] font-mono text-[10px] font-semibold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FFFFFF]/90 text-[#1D1D1F] font-mono text-[11px] font-semibold">
                       {trend.viralVideo.thumbnailTheme.aspectLabel}
                     </span>
                   </div>
@@ -577,14 +636,14 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 </div>
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-[#FFFFFF] text-[#1F6F43] flex items-center justify-center shadow-elevated transition-transform duration-150 group-hover:scale-105">
+                  <div className="w-12 h-12 rounded-full bg-[#FFFFFF] text-[#1D1D1F] flex items-center justify-center shadow-elevated transition-transform duration-150 group-hover:scale-105">
                     <Play className="w-4 h-4 translate-x-[1px] fill-current" strokeWidth={1.5} />
                   </div>
                 </div>
 
                 <div className="absolute bottom-0 inset-x-0 p-4 flex items-end justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="font-mono text-[10px] tracking-[0.06em] text-[#EAE4D9]">
+                    <div className="font-mono text-[11px] tracking-[0.06em] text-[#EAE4D9]">
                       {trend.viralVideo.thumbnailTheme.frameCode} ·{' '}
                       {trend.viralVideo.thumbnailTheme.captionOverlay}
                     </div>
@@ -604,32 +663,32 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
               </div>
 
               {previewExpanded && (
-                <div className="p-3.5 bg-[#FBF9F4] dark:bg-[#1D1B18] border-b border-[#EAE4D9] dark:border-[#3E3B35] space-y-2 text-[12px]">
+                <div className="p-3.5 bg-soft border-b border-line space-y-2 text-[12px]">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-[#22201D] dark:text-[#F5F2EC] flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-[#625C53]" />
+                    <span className="font-medium text-ink flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-ink-2" />
                       <span>{c.retentionLabel}</span>
                     </span>
                     <button
                       type="button"
                       onClick={() => setPreviewExpanded(false)}
-                      className="text-[11px] text-[#625C53] dark:text-[#B5AFA4] hover:text-[#22201D] dark:hover:text-[#F5F2EC]"
+                      className="text-[11px] text-ink-2 hover:text-ink"
                     >
                       {c.closeBtn}
                     </button>
                   </div>
-                  <div className="p-2.5 rounded-[10px] bg-[#FFFFFF] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-1.5">
-                    <div className="flex items-center justify-between font-mono text-[10px] text-[#625C53] dark:text-[#B5AFA4]">
+                  <div className="p-2.5 rounded-[10px] bg-surface border border-line space-y-1.5">
+                    <div className="flex items-center justify-between font-mono text-[11px] text-ink-2">
                       <span>00:00 HOOK</span>
-                      <span className="text-[#1F6F43] dark:text-[#81B64C] font-semibold">
-                        PEAK REPLAY
+                      <span className="text-accent font-semibold">
+                        {tr('PEAK REPLAY', lang)}
                       </span>
                       <span>{trend.viralVideo.duration}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-[#EAE4D9] dark:bg-[#43403A] overflow-hidden flex">
-                      <div className="w-[32%] bg-[#22201D] dark:bg-[#F5F2EC]" />
-                      <div className="w-[42%] bg-[#1F6F43] dark:bg-[#81B64C]" />
-                      <div className="w-[26%] bg-[#A59D90]" />
+                    <div className="h-1.5 rounded-full bg-line overflow-hidden flex">
+                      <div className="w-[32%] bg-ink" />
+                      <div className="w-[42%] bg-pop" />
+                      <div className="w-[26%] bg-ink-3" />
                     </div>
                   </div>
                 </div>
@@ -641,13 +700,13 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     href={trend.viralVideo.creator.profileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-[12.5px] text-[#22201D] dark:text-[#F5F2EC] hover:underline"
+                    className="inline-flex items-center gap-2 text-[12.5px] text-ink hover:underline"
                   >
-                    <UserCheck className="w-3.5 h-3.5 text-[#1F6F43] dark:text-[#81B64C]" />
+                    <UserCheck className="w-3.5 h-3.5 text-accent" />
                     <span className="font-mono font-semibold">
                       {trend.viralVideo.creator.handle}
                     </span>
-                    <span className="text-[#625C53] dark:text-[#B5AFA4]">
+                    <span className="text-ink-2">
                       · {trend.viralVideo.creator.followers}
                     </span>
                   </a>
@@ -656,13 +715,13 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     href={trend.viralVideo.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] dark:hover:bg-[#93C75D] text-[#FFFFFF] dark:text-[#191815] transition-colors"
+                    className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop transition-colors"
                   >
                     <span>{c.watchVideo}</span>
                   </a>
                 </div>
 
-                <div className="pt-3 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-2.5">
+                <div className="pt-3 border-t border-line space-y-2.5">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {trend.platforms.map((p) => (
                       <PlatformMiniBadge key={p} platform={p} />
@@ -670,9 +729,9 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     {trend.audiences.map((aud) => (
                       <span
                         key={aud}
-                        className="px-2.5 py-0.5 rounded-full text-[11px] bg-[#FBF9F4] dark:bg-[#2E2C28] text-[#625C53] dark:text-[#B5AFA4] border border-[#EAE4D9] dark:border-[#3E3B35]"
+                        className="px-2.5 py-0.5 rounded-full text-[11px] bg-soft text-ink-2 border border-line"
                       >
-                        {aud}
+                        {tr(aud, lang)}
                       </span>
                     ))}
                   </div>
@@ -684,14 +743,14 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                           key={tag}
                           type="button"
                           onClick={() => onClickHashtag(tag)}
-                          className="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full font-mono text-[11px] bg-[#FBF9F4] dark:bg-[#2E2C28] hover:bg-[#F4F0E8] dark:hover:bg-[#3A3834] text-[#625C53] dark:text-[#B5AFA4] border border-[#EAE4D9] dark:border-[#3E3B35] transition-colors"
+                          className="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full font-mono text-[11px] bg-soft hover:bg-canvas text-ink-2 border border-line transition-colors"
                         >
-                          <Hash className="w-2.5 h-2.5 text-[#8E877D]" />
+                          <Hash className="w-2.5 h-2.5 text-ink-3" />
                           <span>{tag}</span>
                         </button>
                       ))
                     ) : (
-                      <span className="text-[12px] italic text-[#625C53] dark:text-[#B5AFA4]">
+                      <span className="text-[12px] italic text-ink-2">
                         {c.noHashtag}
                       </span>
                     )}
@@ -701,41 +760,41 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
             </div>
           </section>
 
-          {/* Editorial Recommendation Callout — Warm Deep Botanical Forest Green */}
-          <section className="pt-6 border-t border-[#EAE4D9] dark:border-[#3E3B35]">
-            <div className="rounded-[16px] bg-[#193829] dark:bg-[#1E3326] text-[#F5F2EC] p-5 space-y-2.5 border border-[#2C5540]">
-              <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.06em] text-[#86EFAC] dark:text-[#81B64C]">
+          {/* Editorial Recommendation Callout — lilac sticker */}
+          <section className="pt-6 border-t border-line">
+            <div className="rounded-[16px] bg-lilac text-on-pop sticker p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.06em] text-on-pop">
                 <Compass className="w-3.5 h-3.5" />
                 <span>{c.recTitle}</span>
               </div>
-              <div className="font-display text-[15.5px] font-bold text-[#FFFFFF] leading-[1.35]">
+              <div className="font-display text-[15.5px] font-bold text-on-pop leading-[1.35]">
                 {trend.recommendation.headline}
               </div>
-              <p className="text-[13px] text-[#DCE8E0] leading-[1.55]">
+              <p className="text-[13px] text-on-pop leading-[1.55]">
                 {trend.recommendation.rationale}
               </p>
-              <div className="pt-3 border-t border-[#2C5540] grid grid-cols-1 sm:grid-cols-3 gap-3 text-[12px]">
+              <div className="pt-3 border-t border-on-pop/25 grid grid-cols-1 sm:grid-cols-3 gap-3 text-[12px]">
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.05em] text-[#9CC3AD]">
+                  <div className="text-[11px] font-mono uppercase tracking-[0.05em] text-on-pop">
                     {c.recFormat}
                   </div>
-                  <div className="text-[#FFFFFF] font-medium mt-0.5">
+                  <div className="text-on-pop font-medium mt-0.5">
                     {trend.recommendation.suggestedFormat}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.05em] text-[#9CC3AD]">
+                  <div className="text-[11px] font-mono uppercase tracking-[0.05em] text-on-pop">
                     {c.recPole}
                   </div>
-                  <div className="text-[#FFFFFF] font-medium mt-0.5">
+                  <div className="text-on-pop font-medium mt-0.5">
                     {trend.recommendation.targetPole}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.05em] text-[#9CC3AD]">
+                  <div className="text-[11px] font-mono uppercase tracking-[0.05em] text-on-pop">
                     {c.recWindow}
                   </div>
-                  <div className="text-[#FFFFFF] font-medium mt-0.5">
+                  <div className="text-on-pop font-medium mt-0.5">
                     {trend.recommendation.targetWindow}
                   </div>
                 </div>
@@ -744,14 +803,14 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
           </section>
 
           {/* Drivers vs Limits */}
-          <section className="pt-6 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-3.5">
-            <h3 className="text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+          <section className="pt-6 border-t border-line space-y-3.5">
+            <h3 className="text-[13px] font-semibold text-ink">
               {c.growthTitle}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-4 rounded-[14px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-2">
-                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1F6F43] dark:text-[#81B64C]">
+              <div className="p-4 rounded-[14px] bg-soft border border-line space-y-2">
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-accent">
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                   <span>{c.driversTitle}</span>
                 </div>
@@ -759,17 +818,17 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   {trend.drivers.map((drv, i) => (
                     <li
                       key={i}
-                      className="text-[12px] text-[#373633] dark:text-[#D5D1C8] leading-[1.45] flex items-start gap-2"
+                      className="text-[12px] text-ink-2 leading-[1.45] flex items-start gap-2"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1F6F43] dark:bg-[#81B64C] mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-pop mt-1.5 shrink-0" />
                       <span>{drv}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="p-4 rounded-[14px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-2">
-                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#991B1B] dark:text-[#F87171]">
+              <div className="p-4 rounded-[14px] bg-soft border border-line space-y-2">
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-danger">
                   <MinusCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>{c.limitsTitle}</span>
                 </div>
@@ -777,9 +836,9 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   {trend.limits.map((lim, i) => (
                     <li
                       key={i}
-                      className="text-[12px] text-[#373633] dark:text-[#D5D1C8] leading-[1.45] flex items-start gap-2"
+                      className="text-[12px] text-ink-2 leading-[1.45] flex items-start gap-2"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#991B1B] dark:bg-[#F87171] mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0" />
                       <span>{lim}</span>
                     </li>
                   ))}
@@ -804,14 +863,14 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 <span
                   className={`font-mono text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${uncertaintyStyles.badgeBg}`}
                 >
-                  {trend.uncertaintyRisk.level}
+                  {tr(trend.uncertaintyRisk.level, lang)}
                 </span>
               </div>
-              <p className="text-[12px] text-[#22201D] dark:text-[#F5F2EC] leading-[1.45]">
+              <p className="text-[12px] text-ink leading-[1.45]">
                 {trend.uncertaintyRisk.explanation}
               </p>
-              <p className="text-[11px] text-[#625C53] dark:text-[#B5AFA4] leading-[1.4]">
-                <strong className="font-medium text-[#22201D] dark:text-[#F5F2EC]">
+              <p className="text-[11px] text-ink-2 leading-[1.4]">
+                <strong className="font-medium text-ink">
                   {c.missingData}
                 </strong>{' '}
                 {trend.uncertaintyRisk.missingData}
@@ -820,24 +879,24 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
           </section>
 
           {/* Cross-Platform Trajectory Chart */}
-          <section className="pt-6 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-3">
-            <h3 className="text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+          <section className="pt-6 border-t border-line space-y-3">
+            <h3 className="text-[13px] font-semibold text-ink">
               {c.trajectoryTitle}
             </h3>
 
-            <div className="p-4 rounded-[14px] bg-[#FFFFFF] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35]">
-              <div className="flex flex-wrap items-center gap-4 mb-3 text-[11px] text-[#6B6A65] dark:text-[#ABA89F]">
+            <div className="p-4 rounded-[14px] bg-surface border border-line">
+              <div className="flex flex-wrap items-center gap-4 mb-3 text-[11px] text-ink-2">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-[2px] bg-[#D9822B]" />
-                  <span>Niche Incubator</span>
+                  <span className="w-2.5 h-[3px] bg-pop" />
+                  <span>{tr('Niche Incubator', lang)}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-[2px] bg-[#141413] dark:bg-[#E5E2D9]" />
-                  <span>Social Velocity</span>
+                  <span className="w-2.5 h-[2px] bg-ink" />
+                  <span>{tr('Social Velocity', lang)}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-[2px] bg-[#166534] dark:bg-[#81B64C]" />
-                  <span>Google Trends</span>
+                  <span className="w-2.5 h-[3px] bg-[#8F78F5]" />
+                  <span>{tr('Google Trends', lang)}</span>
                 </span>
               </div>
 
@@ -848,7 +907,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     margin={{ top: 8, right: 18, left: -22, bottom: 0 }}
                   >
                     <CartesianGrid
-                      stroke="#7F7D75"
+                      stroke="var(--mw-line)"
                       strokeOpacity={0.2}
                       vertical={false}
                       strokeWidth={1}
@@ -857,17 +916,17 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                       dataKey="dayLabel"
                       tick={{
                         fontSize: 11,
-                        fill: '#8C8A82',
+                        fill: 'var(--mw-ink-3)',
                         fontFamily: 'JetBrains Mono',
                       }}
-                      axisLine={{ stroke: '#6E6B64' }}
+                      axisLine={{ stroke: 'var(--mw-line)' }}
                       tickLine={false}
                     />
                     <YAxis
                       domain={[0, 100]}
                       tick={{
                         fontSize: 11,
-                        fill: '#8C8A82',
+                        fill: 'var(--mw-ink-3)',
                         fontFamily: 'JetBrains Mono',
                       }}
                       axisLine={false}
@@ -875,10 +934,10 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#262522',
-                        border: '1px solid #45423C',
+                        backgroundColor: 'var(--mw-surface)',
+                        border: '2px solid var(--mw-edge)',
                         borderRadius: '6px',
-                        color: '#F3F2EE',
+                        color: 'var(--mw-ink)',
                         fontSize: '12px',
                         fontFamily: 'JetBrains Mono',
                       }}
@@ -886,30 +945,30 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                     <Area
                       type="monotone"
                       dataKey="nicheIncubator"
-                      name="Niche Incubator"
-                      stroke="#D9822B"
+                      name={tr('Niche Incubator', lang)}
+                      stroke="#FF6445"
                       strokeWidth={1.75}
-                      fill="#D9822B"
+                      fill="#FF6445"
                       fillOpacity={0.14}
                       isAnimationActive={false}
                     />
                     <Area
                       type="monotone"
                       dataKey="socialVelocity"
-                      name="Social Velocity"
-                      stroke="#7D7B74"
+                      name={tr('Social Velocity', lang)}
+                      stroke="var(--mw-ink)"
                       strokeWidth={2}
-                      fill="#7D7B74"
+                      fill="var(--mw-ink)"
                       fillOpacity={0.12}
                       isAnimationActive={false}
                     />
                     <Area
                       type="monotone"
                       dataKey="mainstreamSearch"
-                      name="Google Trends"
-                      stroke="#55A852"
+                      name={tr('Google Trends', lang)}
+                      stroke="#8F78F5"
                       strokeWidth={2}
-                      fill="#55A852"
+                      fill="#8F78F5"
                       fillOpacity={0.18}
                       isAnimationActive={false}
                     />
@@ -920,13 +979,13 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
           </section>
 
           {/* Team Votes */}
-          <section className="pt-6 border-t border-[#EAE4D9] dark:border-[#3E3B35] space-y-3.5 pb-4">
-            <h3 className="text-[13px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+          <section className="pt-6 border-t border-line space-y-3.5 pb-4">
+            <h3 className="text-[13px] font-semibold text-ink">
               {c.teamVotesTitle} ({trend.votes.length})
             </h3>
 
             {trend.votes.length === 0 ? (
-              <div className="p-3.5 rounded-[12px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] text-[12px] text-[#625C53] dark:text-[#B5AFA4]">
+              <div className="p-3.5 rounded-[12px] bg-soft border border-line text-[12px] text-ink-2">
                 {c.noVotesYet}
               </div>
             ) : (
@@ -934,7 +993,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 {trend.votes.map((vote) => (
                   <div
                     key={vote.id}
-                    className="p-3.5 rounded-[12px] bg-[#FBF9F4] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-1.5"
+                    className="p-3.5 rounded-[12px] bg-soft border border-line space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -943,18 +1002,18 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                           title={`${vote.colleagueName} (${vote.pole})`}
                           size="xs"
                         />
-                        <span className="text-[12.5px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+                        <span className="text-[12.5px] font-semibold text-ink">
                           {vote.colleagueName}
                         </span>
-                        <span className="text-[11px] text-[#625C53] dark:text-[#B5AFA4]">
+                        <span className="text-[11px] text-ink-2">
                           {vote.pole}
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] text-[#8E877D]">
+                      <span className="font-mono text-[11px] text-ink-3">
                         {vote.timestamp}
                       </span>
                     </div>
-                    <p className="text-[12.5px] text-[#373633] dark:text-[#D5D1C8] leading-[1.45] pl-7">
+                    <p className="text-[12.5px] text-ink-2 leading-[1.45] pl-7">
                       “{vote.rationale}”
                     </p>
                   </div>
@@ -965,10 +1024,10 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
             <form
               ref={voteFormRef}
               onSubmit={handleVoteSubmit}
-              className="p-4 rounded-[14px] bg-[#FFFFFF] dark:bg-[#24221F] border border-[#EAE4D9] dark:border-[#3E3B35] space-y-2.5"
+              className="p-4 rounded-[14px] bg-surface border border-line space-y-2.5"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[12.5px] font-semibold text-[#22201D] dark:text-[#F5F2EC]">
+                <span className="text-[12.5px] font-semibold text-ink">
                   {trend.isPastTrend ? c.addArchiveNoteTitle : c.castVoteTitle}
                 </span>
                 <div className="flex flex-wrap items-center gap-1">
@@ -980,10 +1039,10 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                         setVoterName(preset.name);
                         setVoterPole(preset.pole);
                       }}
-                      className={`px-2.5 py-0.5 rounded-full text-[10.5px] border transition-colors ${
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] border transition-colors ${
                         voterName === preset.name
-                          ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815] border-[#1F6F43] dark:border-[#81B64C]'
-                          : 'bg-[#FBF9F4] dark:bg-[#2E2C28] text-[#625C53] dark:text-[#B5AFA4] border-[#EAE4D9] dark:border-[#3E3B35] hover:text-[#22201D] dark:hover:text-[#F5F2EC]'
+                          ? 'bg-pop text-on-pop border-edge'
+                          : 'bg-soft text-ink-2 border-line hover:text-ink'
                       }`}
                     >
                       {preset.name.split(' ')[0]}
@@ -999,13 +1058,13 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   onChange={(e) => setVoterName(e.target.value)}
                   placeholder={c.yourName}
                   aria-label={c.yourName}
-                  className="h-[34px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] text-[#22201D] dark:text-[#F5F2EC]"
+                  className="h-[34px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] text-ink"
                 />
                 <select
                   value={voterPole}
                   onChange={(e) => setVoterPole(e.target.value)}
-                  aria-label="Mediawan pole"
-                  className="h-[34px] px-3 rounded-xl bg-[#FBF9F4] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12px] text-[#22201D] dark:text-[#F5F2EC]"
+                  aria-label={tr('Mediawan pole', lang)}
+                  className="h-[34px] px-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12px] text-ink"
                 >
                   {MEDIAWAN_POLES.map((pole) => (
                     <option key={pole} value={pole}>
@@ -1025,11 +1084,11 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                 }}
                 placeholder={c.whyTrackPlaceholder}
                 aria-label={c.whyTrackPlaceholder}
-                className="w-full p-3 rounded-xl bg-[#FBF9F4] dark:bg-[#2E2C28] border border-[#EAE4D9] dark:border-[#3E3B35] focus:border-[#1F6F43] focus:outline-none text-[12.5px] text-[#22201D] dark:text-[#F5F2EC] resize-none"
+                className="w-full p-3 rounded-xl bg-soft border border-line focus:border-accent focus:outline-none text-[12.5px] text-ink resize-none"
               />
 
               {voteError && (
-                <div className="text-[11.5px] text-[#991B1B] dark:text-[#F87171]">
+                <div className="text-[11.5px] text-danger">
                   {voteError}
                 </div>
               )}
@@ -1039,8 +1098,8 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   type="submit"
                   className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${
                     justVoted
-                      ? 'bg-[#1F6F43] dark:bg-[#81B64C] text-[#FFFFFF] dark:text-[#191815]'
-                      : 'bg-[#1F6F43] hover:bg-[#185B36] dark:bg-[#81B64C] dark:hover:bg-[#93C75D] text-[#FFFFFF] dark:text-[#191815]'
+                      ? 'bg-pop text-on-pop'
+                      : 'bg-pop hover:bg-pop-hover text-on-pop'
                   }`}
                 >
                   {justVoted ? (
