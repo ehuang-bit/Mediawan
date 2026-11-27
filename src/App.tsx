@@ -27,7 +27,7 @@ import { MobileNav } from './components/MobileNav';
 import { AuthSession, LoginScreen } from './components/LoginScreen';
 
 const STORAGE_KEYS = {
-  TRENDS: 'mediawan_radar_trends_v8',
+  TRENDS: 'mediawan_radar_trends_v9',
   FILTERS: 'mediawan_radar_filters_v8',
   SIDEBAR: 'mediawan_radar_sidebar_collapsed_v8',
   VIEW: 'mediawan_radar_active_view_v8',

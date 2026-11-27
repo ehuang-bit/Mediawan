@@ -25,8 +25,11 @@ const WIKIMEDIA_BINDINGS: Record<string, string> = {
   'mw-sig-07': 'Jet_Lag:_The_Game',
   'mw-sig-08': 'Game_Changer_(game_show)',
   'mw-past-01': 'Skibidi_Toilet',
-  'mw-past-04': 'Grimace_Shake',
-  'mw-past-05': 'Chill_guy',
+  'mw-past-02': 'Hazbin_Hotel',
+  'mw-past-03': 'The_Amazing_Digital_Circus',
+  'mw-past-04': 'Cocomelon',
+  'mw-past-05': 'Oddbods',
+  'mw-past-06': "Simon's_Cat",
 };
 
 function decodeXmlEntities(raw: string): string {

@@ -24,7 +24,7 @@ export interface PersistedDatabase {
   trends: MicroTrend[];
 }
 
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 const DB_DIR = path.resolve(process.cwd(), 'server', 'data');
 export const DB_FILE_PATH = path.join(DB_DIR, 'db.json');
 

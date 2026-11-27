@@ -39,10 +39,7 @@ import {
 } from './SemanticBadges';
 import { getVerdict, verdictSentence } from '../utils/verdict';
 import { TrendThumbnail } from './TrendThumbnail';
-import {
-  downloadTextFile,
-  generateOnePagerMarkdown,
-} from '../utils/exportMarkdown';
+import { exportTrendPdf } from '../utils/exportPdf';
 import { translateWatchlist, UI_COPY, tr, translateAge, translateDate } from '../i18n';
 
 interface GreenlightDrawerProps {
@@ -109,6 +106,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
   lang,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [previewExpanded, setPreviewExpanded] = useState(false);
 
   const [voterName, setVoterName] = useState('Claire Rochefort');
@@ -173,15 +171,17 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const handleExportMarkdown = () => {
-    const md = generateOnePagerMarkdown(trend, rankNumber);
-    const slug = trend.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      .slice(0, 48);
-    downloadTextFile(`mediawan-onepager-${slug}.md`, md);
-    onShowToast(`${c.exportOnePager}`);
+  const handleExportPdf = async () => {
+    if (isExportingPdf) return;
+    setIsExportingPdf(true);
+    try {
+      await exportTrendPdf(trend, lang, rankNumber);
+      onShowToast(lang === 'fr' ? 'Fiche PDF téléchargée' : 'PDF brief downloaded');
+    } catch {
+      onShowToast(lang === 'fr' ? 'Erreur lors de l’export PDF' : 'PDF export failed');
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const handleVoteSubmit = (e: React.FormEvent) => {
@@ -379,11 +379,18 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
 
               <button
                 type="button"
-                onClick={handleExportMarkdown}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop transition-colors"
+                onClick={handleExportPdf}
+                disabled={isExportingPdf}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold bg-pop hover:bg-pop-hover text-on-pop disabled:opacity-60 transition-colors cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>{c.exportOnePager}</span>
+                <span>
+                  {isExportingPdf
+                    ? lang === 'fr'
+                      ? 'Génération…'
+                      : 'Generating…'
+                    : c.exportOnePager}
+                </span>
               </button>
             </div>
           </div>
@@ -450,7 +457,7 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
 
           {/* 4-Pillar Scorecard */}
           <section className="space-y-3.5">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-[14px] bg-soft border border-line">
+            <div className="grid grid-cols-3 gap-3 p-4 rounded-[14px] bg-soft border border-line">
               <div>
                 <div className="text-[11px] text-ink-2">
                   {c.colScore}
@@ -476,14 +483,6 @@ export const GreenlightDrawer: React.FC<GreenlightDrawerProps> = ({
                   {trend.velocity7d >= 0
                     ? `+${trend.velocity7d}%`
                     : `${trend.velocity7d}%`}
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] text-ink-2">
-                  {c.hoverLift}
-                </div>
-                <div className="font-mono text-[16px] font-semibold text-ink mt-1 tabular-nums">
-                  {trend.scoreBreakdown.anomalyMultiplier}
                 </div>
               </div>
               <div>

@@ -100,10 +100,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <div
-      className="min-h-dvh w-full bg-canvas text-ink relative flex flex-col justify-center overflow-x-hidden px-4 py-12 sm:px-8"
+      className="min-h-dvh w-full bg-[#F7F1E1] dark:bg-canvas text-ink relative flex flex-col justify-center overflow-x-hidden px-4 py-12 sm:px-8"
       style={{
         backgroundImage:
-          'linear-gradient(to right, rgba(29, 29, 31, 0.055) 1px, transparent 1px), linear-gradient(to bottom, rgba(29, 29, 31, 0.055) 1px, transparent 1px)',
+          'linear-gradient(to right, rgba(29, 29, 31, 0.075) 1px, transparent 1px), linear-gradient(to bottom, rgba(29, 29, 31, 0.075) 1px, transparent 1px)',
         backgroundSize: '36px 36px',
       }}
     >
@@ -152,9 +152,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           >
             <defs>
               <radialGradient id="login-sphere-grad" cx="35%" cy="30%" r="70%">
-                <stop offset="0%" stopColor="#F1EEDB" />
-                <stop offset="55%" stopColor="#B8B28B" />
-                <stop offset="100%" stopColor="#6D6950" />
+                <stop offset="0%" stopColor="#FFF7D6" />
+                <stop offset="55%" stopColor="#CEBC6B" />
+                <stop offset="100%" stopColor="#776A34" />
               </radialGradient>
             </defs>
 
@@ -168,7 +168,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               />
               <path
                 d="M 134 248 A 170 170 0 1 1 464 294"
-                stroke="#C1BA8F"
+                stroke="#D1C174"
                 strokeWidth="15.5"
               />
               {/* Ring 2 */}
@@ -179,7 +179,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               />
               <path
                 d="M 430 244 A 126 126 0 1 1 280 120"
-                stroke="#C1BA8F"
+                stroke="#D1C174"
                 strokeWidth="14"
               />
               {/* Ring 3 */}
@@ -190,7 +190,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               />
               <path
                 d="M 224 248 A 80 80 0 1 1 380 268"
-                stroke="#C1BA8F"
+                stroke="#D1C174"
                 strokeWidth="13"
               />
               {/* Inner ring */}
@@ -205,7 +205,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 cx="304"
                 cy="248"
                 r="42"
-                stroke="#C1BA8F"
+                stroke="#D1C174"
                 strokeWidth="11.5"
               />
             </g>
@@ -250,7 +250,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="70"
                 height="36"
                 rx="18"
-                fill="#E07154"
+                fill="#FF6445"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -280,7 +280,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="92"
                 height="36"
                 rx="18"
-                fill="#B7A6FF"
+                fill="#A48AFF"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -310,7 +310,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="104"
                 height="38"
                 rx="19"
-                fill="#B7A6FF"
+                fill="#A48AFF"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -341,7 +341,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="88"
                 height="34"
                 rx="17"
-                fill="#E07154"
+                fill="#FF6445"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -372,7 +372,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="106"
                 height="86"
                 rx="24"
-                fill="#E07154"
+                fill="#FF6445"
                 stroke="#1D1D1F"
                 strokeWidth="3.5"
               />
@@ -390,7 +390,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               {/* Camera top flash/viewfinder bump */}
               <path
                 d="M 48 10 L 58 -5 L 102 -5 L 112 10 Z"
-                fill="#B7A6FF"
+                fill="#A48AFF"
                 stroke="#1D1D1F"
                 strokeWidth="3.5"
                 strokeLinejoin="round"
@@ -402,7 +402,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 width="22"
                 height="11"
                 rx="4.5"
-                fill="#E07154"
+                fill="#FF6445"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -429,7 +429,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               {/* Left lilac grip strip */}
               <path
                 d="M 20 10 H 42 V 112 H 20 A 20 20 0 0 1 0 92 V 30 A 20 20 0 0 1 20 10 Z"
-                fill="#B7A6FF"
+                fill="#A48AFF"
                 stroke="#1D1D1F"
                 strokeWidth="3.5"
               />
@@ -457,7 +457,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 cx="90"
                 cy="64"
                 r="26"
-                fill="#B7A6FF"
+                fill="#A48AFF"
                 stroke="#1D1D1F"
                 strokeWidth="3.5"
               />
@@ -465,7 +465,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 cx="90"
                 cy="64"
                 r="14"
-                fill="#8E7CE6"
+                fill="#7C5CE6"
                 stroke="#1D1D1F"
                 strokeWidth="3.2"
               />
@@ -534,26 +534,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {/* Sparkles & Dots */}
             <path
               d="M 380 34 Q 383 47 395 50 Q 383 53 380 66 Q 377 53 365 50 Q 377 47 380 34 Z"
-              fill="#C1BA8F"
+              fill="#D1C174"
               stroke="#1D1D1F"
               strokeWidth="2.3"
             />
             <path
               d="M 516 198 Q 519 210 531 213 Q 519 216 516 228 Q 513 216 501 213 Q 513 210 516 198 Z"
-              fill="#E07154"
+              fill="#FF6445"
               stroke="#1D1D1F"
               strokeWidth="2.3"
             />
             <path
               d="M 76 244 Q 79 257 91 260 Q 79 263 76 276 Q 73 263 61 260 Q 73 257 76 244 Z"
-              fill="#B7A6FF"
+              fill="#A48AFF"
               stroke="#1D1D1F"
               strokeWidth="2.3"
             />
-            <circle cx="240" cy="44" r="5" fill="#E07154" stroke="#1D1D1F" strokeWidth="2.2" />
-            <circle cx="524" cy="156" r="5" fill="#C1BA8F" stroke="#1D1D1F" strokeWidth="2.2" />
-            <circle cx="332" cy="442" r="5.5" fill="#C1BA8F" stroke="#1D1D1F" strokeWidth="2.2" />
-            <circle cx="192" cy="444" r="4" fill="#B7A6FF" stroke="#1D1D1F" strokeWidth="2.2" />
+            <circle cx="240" cy="44" r="5" fill="#FF6445" stroke="#1D1D1F" strokeWidth="2.2" />
+            <circle cx="524" cy="156" r="5" fill="#D1C174" stroke="#1D1D1F" strokeWidth="2.2" />
+            <circle cx="332" cy="442" r="5.5" fill="#D1C174" stroke="#1D1D1F" strokeWidth="2.2" />
+            <circle cx="192" cy="444" r="4" fill="#A48AFF" stroke="#1D1D1F" strokeWidth="2.2" />
           </svg>
         </div>
 
@@ -567,7 +567,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <div className="flex items-center gap-2.5">
               <div
                 aria-hidden="true"
-                className="w-10 h-10 rounded-[12px] bg-[#E07154] border-2 border-edge shadow-[2px_2px_0_var(--mw-shadow)] flex items-center justify-center shrink-0"
+                className="w-10 h-10 rounded-[12px] bg-[#FF6445] border-2 border-edge shadow-[2px_2px_0_var(--mw-shadow)] flex items-center justify-center shrink-0"
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="8.5" stroke="#1D1D1F" strokeWidth="2" strokeDasharray="16 5" />
@@ -575,7 +575,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <circle cx="12" cy="12" r="2" fill="#1D1D1F" />
                 </svg>
               </div>
-              <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-lilac text-on-pop border-2 border-edge font-display text-[13px] font-extrabold tracking-[0.06em]">
+              <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-[#A48AFF] text-on-pop border-2 border-edge font-display text-[13px] font-extrabold tracking-[0.06em]">
                 MEDIAWAN
               </span>
             </div>
@@ -584,7 +584,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               id="login-heading"
               className="font-display text-[36px] sm:text-[40px] font-extrabold text-ink leading-[1.05] tracking-tight"
             >
-              Signal Radar<span className="text-[#E07154]">*</span>
+              Signal Radar<span className="text-[#FF6445]">*</span>
             </h1>
           </div>
 
@@ -691,7 +691,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
             <button
               type="submit"
-              className="w-full h-[50px] rounded-full bg-[#E07154] hover:bg-pop text-on-pop font-display text-[16px] font-extrabold border-2 border-edge shadow-[0_3px_0_var(--mw-shadow)] active:translate-y-[2px] active:shadow-[0_1px_0_var(--mw-shadow)] transition-all cursor-pointer"
+              className="w-full h-[50px] rounded-full bg-[#FF6445] hover:bg-[#FF4F2B] text-on-pop font-display text-[16px] font-extrabold border-2 border-edge shadow-[0_3px_0_var(--mw-shadow)] active:translate-y-[2px] active:shadow-[0_1px_0_var(--mw-shadow)] transition-all cursor-pointer"
             >
               {isFr ? 'Se connecter' : 'Sign in'}
             </button>

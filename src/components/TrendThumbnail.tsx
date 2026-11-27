@@ -194,67 +194,60 @@ export const TrendThumbnail: React.FC<TrendThumbnailProps> = ({
         );
 
       case 'mw-past-02':
-        // HUSS HUSS HUSS — Roblox basketball + kinetic funk beat bars
+        // Hazbin Hotel — crimson neon hotel marquee
         return (
           <svg viewBox="0 0 120 84" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <rect width="120" height="84" fill="#1D1A18" />
-            <circle cx="38" cy="42" r="18" fill="#EA580C" stroke="#FED7AA" strokeWidth="1.5" />
-            <path d="M20 42H56M38 24V60" stroke="#7C2D12" strokeWidth="1.4" />
-            <rect x="68" y="28" width="6" height="28" rx="3" fill="#22C55E" />
-            <rect x="79" y="18" width="6" height="48" rx="3" fill="#F59E0B" />
-            <rect x="90" y="24" width="6" height="36" rx="3" fill="#EF4444" />
-            <rect x="101" y="32" width="6" height="20" rx="3" fill="#F59E0B" />
+            <rect width="120" height="84" fill="#3B0A1E" />
+            <rect x="26" y="18" width="68" height="48" rx="6" fill="#5B102E" stroke="#FDE047" strokeWidth="1.6" />
+            <circle cx="60" cy="42" r="14" fill="#E11D48" />
+            <polygon points="60,29 64,39 74,39 66,45 69,55 60,49 51,55 54,45 46,39 56,39" fill="#FDE047" />
           </svg>
         );
 
       case 'mw-past-03':
-        // Quoicoubeh / Apagnan — French schoolyard TikTok speech-bubble trap
+        // The Amazing Digital Circus — colorful circus tent stripes
         return (
           <svg viewBox="0 0 120 84" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <rect width="40" height="84" fill="#1D4ED8" />
-            <rect x="40" width="40" height="84" fill="#F8FAFC" />
-            <rect x="80" width="40" height="84" fill="#DC2626" />
-            <rect width="120" height="84" fill="#111827" fillOpacity="0.34" />
-            <rect x="26" y="22" width="68" height="34" rx="8" fill="#FFFFFF" />
-            <polygon points="44,56 54,56 42,67" fill="#FFFFFF" />
-            <line x1="38" y1="35" x2="82" y2="35" stroke="#16181A" strokeWidth="3.5" strokeLinecap="round" />
-            <line x1="38" y1="45" x2="66" y2="45" stroke="#DC2626" strokeWidth="3.5" strokeLinecap="round" />
+            <rect width="120" height="84" fill="#1D4ED8" />
+            <polygon points="60,12 18,74 102,74" fill="#EF4444" />
+            <polygon points="60,12 42,74 78,74" fill="#FACC15" />
+            <circle cx="60" cy="48" r="11" fill="#FFFFFF" stroke="#1D1D1F" strokeWidth="1.5" />
           </svg>
         );
 
       case 'mw-past-04':
-        // Grimace Shake Horror Parody — purple cup + crime-scene stripe
+        // CoComelon — smiling watermelon emblem
         return (
           <svg viewBox="0 0 120 84" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <rect width="120" height="84" fill="#221236" />
-            <path d="M44 26H76L71 68H49Z" fill="#9333EA" stroke="#E9D5FF" strokeWidth="1.5" />
-            <ellipse cx="60" cy="26" rx="17" ry="5" fill="#F3E8FF" />
-            <line x1="60" y1="12" x2="66" y2="26" stroke="#FACC15" strokeWidth="3" strokeLinecap="round" />
-            <line x1="0" y1="68" x2="120" y2="56" stroke="#FACC15" strokeWidth="6" strokeDasharray="10 6" strokeOpacity="0.85" />
+            <rect width="120" height="84" fill="#15803D" />
+            <rect x="26" y="18" width="68" height="48" rx="14" fill="#22C55E" stroke="#FFFFFF" strokeWidth="2" />
+            <circle cx="48" cy="40" r="5" fill="#1D1D1F" />
+            <circle cx="72" cy="40" r="5" fill="#1D1D1F" />
+            <path d="M48 52 Q60 60 72 52" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" />
           </svg>
         );
 
       case 'mw-past-05':
-        // Chill Guy — warm olive/beige calm horizon + sweater silhouette
+        // Oddbods — multi-color slapstick ensemble badges
         return (
           <svg viewBox="0 0 120 84" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <rect width="120" height="84" fill="#EAE6DF" />
-            <circle cx="60" cy="33" r="14" fill="#A16207" fillOpacity="0.85" />
-            <path d="M32 80C32 58 46 48 60 48C74 48 88 58 88 80Z" fill="#6B7280" />
-            <ellipse cx="66" cy="34" rx="5" ry="2.2" fill="#1F2937" />
-            <circle cx="24" cy="22" r="7" fill="#1B6E3E" fillOpacity="0.2" />
+            <rect width="120" height="84" fill="#1E293B" />
+            <circle cx="34" cy="42" r="15" fill="#EF4444" />
+            <circle cx="60" cy="42" r="15" fill="#FACC15" />
+            <circle cx="86" cy="42" r="15" fill="#3B82F6" />
           </svg>
         );
 
       case 'mw-past-06':
-        // The Rizzler / Rizz Era — stream spotlight & hype counter
+        // Simon's Cat — classic monochrome 2D cat ears silhouette
         return (
           <svg viewBox="0 0 120 84" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-            <rect width="120" height="84" fill="#1E1B4B" />
-            <circle cx="60" cy="40" r="24" fill="none" stroke="#F43F5E" strokeWidth="3" />
-            <circle cx="60" cy="40" r="14" fill="#312E81" />
-            <rect x="42" y="64" width="36" height="8" rx="4" fill="#F43F5E" />
-            <circle cx="88" cy="20" r="4" fill="#22C55E" />
+            <rect width="120" height="84" fill="#F8FAFC" />
+            <polygon points="36,36 42,16 54,30" fill="#18181B" />
+            <polygon points="84,36 78,16 66,30" fill="#18181B" />
+            <circle cx="60" cy="48" r="22" fill="#FFFFFF" stroke="#18181B" strokeWidth="3" />
+            <circle cx="52" cy="45" r="4" fill="#18181B" />
+            <circle cx="68" cy="45" r="4" fill="#18181B" />
           </svg>
         );
 

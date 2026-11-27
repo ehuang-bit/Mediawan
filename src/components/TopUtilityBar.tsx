@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { ApiConnectorConfig, AppLang, ThemeMode } from '../types';
 import { UI_COPY, tr } from '../i18n';
+import { MediawanWordmark } from './MediawanLogo';
 
 interface TopUtilityBarProps {
   lastBatchTimestamp: string;
@@ -44,9 +45,9 @@ export const TopUtilityBar: React.FC<TopUtilityBarProps> = ({
 
   return (
     <header className="h-[62px] px-3 sm:px-6 bg-surface/90 backdrop-blur-md border-b-2 border-edge flex items-center justify-between gap-2 sm:gap-4 shrink-0 z-20 transition-colors">
-      {/* Warm Sentence-Case Breadcrumb (no duplicate subtitle) */}
-      <div className="md:hidden font-extrabold text-[18px] text-ink whitespace-nowrap">
-        radar<span className="text-pop">*</span>
+      {/* Mobile Top-Left Official Mediawan Logo */}
+      <div className="md:hidden flex items-center gap-1.5 min-w-0">
+        <MediawanWordmark className="h-[17px] w-auto text-ink shrink-0" />
       </div>
       <div className="hidden md:flex items-center gap-2 min-w-0 text-[12.5px] text-ink-2">
         <span className="font-medium shrink-0">

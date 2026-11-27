@@ -14,6 +14,7 @@ import {
 import { AppLang } from '../types';
 import { UI_COPY, tr } from '../i18n';
 import { SidebarGuideCard } from './Stickers';
+import { MediawanMonogram, MediawanWordmark } from './MediawanLogo';
 
 export type ActiveMainView = 'radar' | 'watchlist' | 'backtesting';
 
@@ -84,27 +85,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       <div>
         {/* Brand Header */}
-        <div className="h-[62px] px-4 flex items-center justify-between border-b border-line">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[10px] bg-accent-soft border border-accent-line flex items-center justify-center shrink-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M3 19V5H7.2L12 12.6L16.8 5H21V19H17.4V10.7L13.1 17.5H10.9L6.6 10.7V19H3Z"
-                  className="fill-accent"
-                />
-              </svg>
-            </div>
-            {!collapsed && (
-              <div className="min-w-0 leading-[1.15]">
-                <div className="font-display text-[13.5px] font-bold text-ink truncate">
-                  Mediawan
-                </div>
-                <div className="text-[11.5px] font-medium text-ink-2 truncate">
+        <div className="h-[62px] px-4 flex items-center justify-between gap-2 border-b border-line">
+          <button
+            type="button"
+            onClick={onSelectRadar}
+            title="Mediawan Signal Radar"
+            className="flex items-center min-w-0 text-left group cursor-pointer focus:outline-none"
+          >
+            {collapsed ? (
+              <div className="w-8 h-8 rounded-[10px] bg-surface border-[1.5px] border-edge shadow-[2px_2px_0_var(--mw-shadow)] flex items-center justify-center shrink-0">
+                <MediawanMonogram className="h-[14px] w-auto text-ink" />
+              </div>
+            ) : (
+              <div className="min-w-0 flex flex-col gap-0.5">
+                <MediawanWordmark className="h-[20px] w-auto text-ink group-hover:opacity-80 transition-opacity" />
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-ink-3 truncate">
                   {c.brandSub}
-                </div>
+                </span>
               </div>
             )}
-          </div>
+          </button>
           <button
             type="button"
             onClick={onToggleCollapse}

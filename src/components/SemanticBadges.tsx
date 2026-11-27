@@ -282,29 +282,29 @@ export const CategoryTag: React.FC<{
   );
 };
 
-const PLATFORM_ABBR: Record<PlatformSource, string> = {
-  TikTok: 'TT',
-  YouTube: 'YT',
-  Instagram: 'IG',
-  Facebook: 'FB',
-  Reddit: 'RD',
-  'Google Trends': 'GT',
-  Wikipedia: 'WIKI',
-  'Wattpad/Webtoon': 'WP',
-  'Roblox/Twitch': 'RBX',
-};
-
 export const PlatformMiniBadge: React.FC<{
   platform: PlatformSource;
   showFull?: boolean;
 }> = ({ platform, showFull }) => {
+  if (showFull) {
+    return (
+      <span
+        title={platform}
+        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-surface text-ink-2 border border-line whitespace-nowrap"
+      >
+        <PlatformBrandIcon platform={platform} size={13} />
+        <span>{platform}</span>
+      </span>
+    );
+  }
+
   return (
     <span
       title={platform}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-surface text-ink-2 border border-line whitespace-nowrap"
+      aria-label={platform}
+      className="inline-flex items-center justify-center w-[26px] h-[24px] rounded-full bg-surface border border-line shrink-0"
     >
-      <PlatformBrandIcon platform={platform} size={12} />
-      <span>{showFull ? platform : PLATFORM_ABBR[platform]}</span>
+      <PlatformBrandIcon platform={platform} size={13} />
     </span>
   );
 };

@@ -195,8 +195,8 @@ export const QuickGuideModal: React.FC<QuickGuideModalProps> = ({
                   {isFr ? 'Tendances passées :' : 'Past Trends:'}
                 </strong>{' '}
                 {isFr
-                  ? 'Archives FR & EN (Quoicoubeh, Skibidi Toilet, HUSS HUSS HUSS, Grimace Shake) pour ne plus arriver après la bataille.'
-                  : 'Archived FR & EN youth waves (Quoicoubeh, Skibidi Toilet, HUSS HUSS HUSS, Grimace Shake).'}
+                  ? 'Archives d’animations déjà rachetées (Hazbin Hotel, Digital Circus, CoComelon, Oddbods, Simon’s Cat, Skibidi Toilet) pour calibrer nos repérages.'
+                  : 'Archived acquired animations (Hazbin Hotel, Digital Circus, CoComelon, Oddbods, Simon’s Cat, Skibidi Toilet) used as acquisition benchmarks.'}
               </div>
             </div>
           </div>
