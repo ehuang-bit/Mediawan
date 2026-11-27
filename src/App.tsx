@@ -24,6 +24,7 @@ import { CsvImportModal } from './components/CsvImportModal';
 import { ApiManagerModal } from './components/ApiManagerModal';
 import { QuickGuideModal } from './components/QuickGuideModal';
 import { MobileNav } from './components/MobileNav';
+import { AuthSession, LoginScreen } from './components/LoginScreen';
 
 const STORAGE_KEYS = {
   TRENDS: 'mediawan_radar_trends_v8',
@@ -34,6 +35,7 @@ const STORAGE_KEYS = {
   APIS: 'mediawan_radar_apis_v8',
   LANG: 'mediawan_radar_lang_v8',
   THEME: 'mediawan_radar_theme_v8',
+  AUTH: 'mediawan_radar_auth_v1',
 };
 
 const DEFAULT_FILTERS: RadarFilterState = {
@@ -93,6 +95,10 @@ function hydrateStoredTrends(stored: MicroTrend[]): MicroTrend[] {
 }
 
 export const App: React.FC = () => {
+  const [authSession, setAuthSession] = useState<AuthSession | null>(() =>
+    loadStoredJson<AuthSession | null>(STORAGE_KEYS.AUTH, null)
+  );
+
   const [trends, setTrends] = useState<MicroTrend[]>(() =>
     hydrateStoredTrends(
       loadStoredJson<MicroTrend[]>(STORAGE_KEYS.TRENDS, INITIAL_MICRO_TRENDS)
@@ -560,6 +566,39 @@ export const App: React.FC = () => {
     goToView('radar');
   };
 
+  const handleAuthenticated = (session: AuthSession) => {
+    setAuthSession(session);
+    try {
+      localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify(session));
+    } catch {
+      // ignore
+    }
+    showToast(
+      lang === 'fr'
+        ? `Connecté : ${session.email}`
+        : `Signed in: ${session.email}`
+    );
+  };
+
+  const handleLogout = () => {
+    setAuthSession(null);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.AUTH);
+    } catch {
+      // ignore
+    }
+  };
+
+  if (!authSession) {
+    return (
+      <LoginScreen
+        lang={lang}
+        onChangeLang={(next) => setLang(next)}
+        onAuthenticated={handleAuthenticated}
+      />
+    );
+  }
+
   return (
     <div className="h-dvh flex bg-soft text-ink overflow-hidden transition-colors">
       <Sidebar
@@ -576,6 +615,9 @@ export const App: React.FC = () => {
         onOpenApiManager={() => setApiModalOpen(true)}
         onOpenQuickGuide={() => setQuickGuideOpen(true)}
         onResetDemoData={handleResetDemoData}
+        userEmail={authSession.email}
+        userInitials={authSession.initials}
+        onLogout={handleLogout}
         lang={lang}
       />
 

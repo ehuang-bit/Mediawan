@@ -3,6 +3,7 @@ import {
   ChevronDown,
   HelpCircle,
   History,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   PlugZap,
@@ -30,6 +31,9 @@ interface SidebarProps {
   onOpenApiManager: () => void;
   onOpenQuickGuide: () => void;
   onResetDemoData: () => void;
+  userEmail?: string;
+  userInitials?: string;
+  onLogout?: () => void;
   lang: AppLang;
 }
 
@@ -47,6 +51,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenApiManager,
   onOpenQuickGuide,
   onResetDemoData,
+  userEmail,
+  userInitials,
+  onLogout,
   lang,
 }) => {
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
@@ -279,12 +286,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="w-8 h-8 rounded-full bg-accent-soft border border-accent-line text-accent font-display text-[11.5px] font-bold flex items-center justify-center shrink-0">
-                MM
+                {userInitials ?? 'MM'}
               </span>
               {!collapsed && (
-                <span className="text-[13px] font-semibold text-ink truncate">
-                  {c.navWorkspace}
-                </span>
+                <div className="min-w-0 text-left">
+                  <div className="text-[13px] font-semibold text-ink truncate">
+                    {c.navWorkspace}
+                  </div>
+                  {userEmail && (
+                    <div className="text-[10.5px] text-ink-3 truncate">
+                      {userEmail}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             {!collapsed && (
@@ -316,6 +330,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>{c.resetData}</span>
               </button>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWorkspaceMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[12.5px] text-danger hover:bg-danger-soft text-left"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{lang === 'fr' ? 'Déconnexion' : 'Sign out'}</span>
+                </button>
+              )}
             </div>
           )}
         </div>

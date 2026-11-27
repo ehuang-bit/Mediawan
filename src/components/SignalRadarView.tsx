@@ -455,9 +455,11 @@ export const SignalRadarView: React.FC<SignalRadarViewProps> = ({
               {isPastTab ? c.pastTitle : c.radarTitle}
               <span className="text-pop" aria-hidden="true">*</span>
             </h1>
-            <p className="text-[14px] text-ink-2 mt-1 leading-[1.5]">
-              {isPastTab ? c.pastSubtitle : c.radarSubtitle}
-            </p>
+            {isPastTab && (
+              <p className="text-[14px] text-ink-2 mt-1 leading-[1.5]">
+                {c.pastSubtitle}
+              </p>
+            )}
           </div>
         </div>
 
