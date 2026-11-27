@@ -39,7 +39,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '14 days ago',
       uploadDate: 'Nov 11, 2026',
       duration: '27:18',
-      externalUrl: 'https://www.youtube.com/results?search_query=Knights+of+Guinevere+pilot+GLITCH',
+      externalUrl: 'https://www.youtube.com/watch?v=MCAdbUaMlAE',
+      thumbnailUrl: 'https://i.ytimg.com/vi/MCAdbUaMlAE/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1E1B4B', '#3B3086', '#1B6E3E'],
         frameCode: 'ANI·01G',
@@ -146,7 +147,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '9 days ago',
       uploadDate: 'Nov 16, 2026',
       duration: '1:02:14',
-      externalUrl: 'https://www.youtube.com/results?search_query=Milk+%26+Serial+thats+a+bad+idea+full+movie',
+      externalUrl: 'https://www.youtube.com/watch?v=pbzGQ1lszv4',
+      thumbnailUrl: 'https://i.ytimg.com/vi/pbzGQ1lszv4/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#18181B', '#3F3F46', '#B45309'],
         frameCode: 'TAL·02C',
@@ -253,7 +255,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '7 days ago',
       uploadDate: 'Nov 18, 2026',
       duration: '06:14',
-      externalUrl: 'https://www.youtube.com/@GOBELINSParis/videos',
+      externalUrl: 'https://www.youtube.com/watch?v=XoAdwRk7ANo',
+      thumbnailUrl: 'https://i.ytimg.com/vi/XoAdwRk7ANo/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#18222F', '#F97316', '#38BDF8'],
         frameCode: 'ANI·03F',
@@ -352,7 +355,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '6 days ago',
       uploadDate: 'Nov 19, 2026',
       duration: '15:20',
-      externalUrl: 'https://www.youtube.com/results?search_query=Dungeon+Crawler+Carl+TV+adaptation+Royal+Road',
+      externalUrl: 'https://www.youtube.com/watch?v=4krrWCQzjV8',
+      thumbnailUrl: 'https://i.ytimg.com/vi/4krrWCQzjV8/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1E293B', '#B45309', '#1B6E3E'],
         frameCode: 'FIC·04W',
@@ -451,7 +455,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '8 days ago',
       uploadDate: 'Nov 17, 2026',
       duration: '34:15',
-      externalUrl: 'https://www.youtube.com/@fern-tv/videos',
+      externalUrl: 'https://www.youtube.com/watch?v=oc8G53Tbsvs',
+      thumbnailUrl: 'https://i.ytimg.com/vi/oc8G53Tbsvs/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#0F2233', '#1E3A5F', '#1B6E3E'],
         frameCode: 'DOC·05F',
@@ -550,7 +555,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '12 days ago',
       uploadDate: 'Nov 13, 2026',
       duration: '1:44:10',
-      externalUrl: 'https://www.youtube.com/@TheGreatReview/videos',
+      externalUrl: 'https://www.youtube.com/watch?v=cls_QTi2ynY',
+      thumbnailUrl: 'https://i.ytimg.com/vi/cls_QTi2ynY/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#18181B', '#27272A', '#D94E2A'],
         frameCode: 'DOC·06R',
@@ -649,7 +655,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '7 days ago',
       uploadDate: 'Nov 18, 2026',
       duration: '46:12',
-      externalUrl: 'https://www.youtube.com/@jetlagthegame/videos',
+      externalUrl: 'https://www.youtube.com/watch?v=gy662sV58fY',
+      thumbnailUrl: 'https://i.ytimg.com/vi/gy662sV58fY/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1E3A8A', '#1B6E3E', '#F59E0B'],
         frameCode: 'ENT·07J',
@@ -748,7 +755,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '4 days ago',
       uploadDate: 'Nov 21, 2026',
       duration: '00:58',
-      externalUrl: 'https://www.youtube.com/@gamechangershorts',
+      externalUrl: 'https://www.youtube.com/watch?v=V-6m0jW0X9E',
+      thumbnailUrl: 'https://i.ytimg.com/vi/V-6m0jW0X9E/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#2E1065', '#B45309', '#F59E0B'],
         frameCode: 'ENT·08D',
@@ -838,7 +846,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '5 days ago',
       uploadDate: 'Nov 20, 2026',
       duration: '02:14',
-      externalUrl: 'https://www.youtube.com/results?search_query=cozy+fantasy+booktok+recommendations+2026',
+      externalUrl: 'https://www.youtube.com/watch?v=F5bzqW8N8OA',
+      thumbnailUrl: 'https://i.ytimg.com/vi/F5bzqW8N8OA/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#78350F', '#1B6E3E', '#FDE68A'],
         frameCode: 'FIC·09B',
@@ -928,7 +937,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '4 days ago',
       uploadDate: 'Nov 21, 2026',
       duration: '38:42',
-      externalUrl: 'https://www.youtube.com/@Djilsi/videos',
+      externalUrl: 'https://www.youtube.com/watch?v=4eHzsUUo69w',
+      thumbnailUrl: 'https://i.ytimg.com/vi/4eHzsUUo69w/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#18191F', '#16A34A', '#EF4444'],
         frameCode: 'TAL·10F',
@@ -1017,7 +1027,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: '4 days ago',
       uploadDate: 'Nov 21, 2026',
       duration: '22:10',
-      externalUrl: 'https://www.youtube.com/results?search_query=Roblox+Forsaken+lore+explained',
+      externalUrl: 'https://www.youtube.com/watch?v=ZWSYg-TtdAY',
+      thumbnailUrl: 'https://i.ytimg.com/vi/ZWSYg-TtdAY/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1E1B4B', '#312E81', '#B45309'],
         frameCode: 'TAL·11F',
@@ -1118,7 +1129,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Era: 2023–2024',
       uploadDate: 'Feb 2023 Peak',
       duration: '01:12',
-      externalUrl: 'https://www.youtube.com/results?search_query=Skibidi+Toilet+DaFuqBoom+episode+1',
+      externalUrl: 'https://www.youtube.com/watch?v=eEUR-Um21jY',
+      thumbnailUrl: 'https://i.ytimg.com/vi/eEUR-Um21jY/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#141820', '#272D3B', '#38BDF8'],
         frameCode: 'PAST·01S',
@@ -1217,7 +1229,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Archived Flash Peak',
       uploadDate: 'Peak Week +48h',
       duration: '00:29',
-      externalUrl: 'https://www.youtube.com/results?search_query=Huss+Huss+Huss+Roblox+TikTok+meme+larpniverse',
+      externalUrl: 'https://www.youtube.com/watch?v=u9RTooqZtBk',
+      thumbnailUrl: 'https://i.ytimg.com/vi/u9RTooqZtBk/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1D1A18', '#EA580C', '#22C55E'],
         frameCode: 'PAST·02H',
@@ -1316,7 +1329,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Era: 2023 France',
       uploadDate: 'Feb 2023 Peak',
       duration: '00:45',
-      externalUrl: 'https://www.youtube.com/results?search_query=Quoicoubeh+Apagnan+TikTok+France+explique',
+      externalUrl: 'https://www.youtube.com/watch?v=9hQ0ANab0FE',
+      thumbnailUrl: 'https://i.ytimg.com/vi/9hQ0ANab0FE/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1D4ED8', '#F8FAFC', '#DC2626'],
         frameCode: 'PAST·03Q',
@@ -1414,7 +1428,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Era: Summer 2023',
       uploadDate: 'June 2023 Peak',
       duration: '00:38',
-      externalUrl: 'https://www.youtube.com/results?search_query=Grimace+Shake+TikTok+horror+trend+compilation',
+      externalUrl: 'https://www.youtube.com/watch?v=jhXCaiHlEnU',
+      thumbnailUrl: 'https://i.ytimg.com/vi/jhXCaiHlEnU/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#221236', '#9333EA', '#FACC15'],
         frameCode: 'PAST·04G',
@@ -1512,7 +1527,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Era: Late 2024',
       uploadDate: 'Nov 2024 Peak',
       duration: '01:40',
-      externalUrl: 'https://www.youtube.com/results?search_query=Chill+Guy+meme+explained+Phillip+Banks',
+      externalUrl: 'https://www.youtube.com/watch?v=n0zXeWD6PIQ',
+      thumbnailUrl: 'https://i.ytimg.com/vi/n0zXeWD6PIQ/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#EAE6DF', '#A16207', '#6B7280'],
         frameCode: 'PAST·05C',
@@ -1610,7 +1626,8 @@ const SEED_TRENDS: MicroTrend[] = [
       uploadedAgo: 'Era: 2023–2024',
       uploadDate: '2024 Peak',
       duration: '08:15',
-      externalUrl: 'https://www.youtube.com/results?search_query=The+Rizzler+TikTok+trend+Kai+Cenat+explained',
+      externalUrl: 'https://www.youtube.com/watch?v=zWr8WBiuxSw',
+      thumbnailUrl: 'https://i.ytimg.com/vi/zWr8WBiuxSw/maxresdefault.jpg',
       thumbnailTheme: {
         palette: ['#1E1B4B', '#F43F5E', '#312E81'],
         frameCode: 'PAST·06R',

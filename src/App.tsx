@@ -71,9 +71,32 @@ function formatSyncTimestamp(iso: string | null): string {
   );
 }
 
+function hydrateStoredTrends(stored: MicroTrend[]): MicroTrend[] {
+  const seedById = new Map(INITIAL_MICRO_TRENDS.map((t) => [t.id, t]));
+  return stored.map((item) => {
+    const seed = seedById.get(item.id);
+    if (!seed) return item;
+    const isLegacyUrl =
+      !item.viralVideo.externalUrl ||
+      item.viralVideo.externalUrl.includes('/results?search_query=') ||
+      item.viralVideo.externalUrl.includes('/@');
+    if (item.viralVideo.thumbnailUrl && !isLegacyUrl) return item;
+    return {
+      ...item,
+      viralVideo: {
+        ...item.viralVideo,
+        thumbnailUrl: item.viralVideo.thumbnailUrl ?? seed.viralVideo.thumbnailUrl,
+        externalUrl: isLegacyUrl ? seed.viralVideo.externalUrl : item.viralVideo.externalUrl,
+      },
+    };
+  });
+}
+
 export const App: React.FC = () => {
   const [trends, setTrends] = useState<MicroTrend[]>(() =>
-    loadStoredJson<MicroTrend[]>(STORAGE_KEYS.TRENDS, INITIAL_MICRO_TRENDS)
+    hydrateStoredTrends(
+      loadStoredJson<MicroTrend[]>(STORAGE_KEYS.TRENDS, INITIAL_MICRO_TRENDS)
+    )
   );
 
   const [apiConnectors, setApiConnectors] = useState<ApiConnectorConfig[]>(() =>

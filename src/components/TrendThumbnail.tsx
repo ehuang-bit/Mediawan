@@ -11,13 +11,25 @@ export const TrendThumbnail: React.FC<TrendThumbnailProps> = ({
   variant = 'row',
 }) => {
   const isHero = variant === 'hero';
+  const [imgSrc, setImgSrc] = useState<string | undefined>(
+    trend.viralVideo.thumbnailUrl
+  );
   const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
+    setImgSrc(trend.viralVideo.thumbnailUrl);
     setImgFailed(false);
   }, [trend.viralVideo.thumbnailUrl]);
 
-  const hasLiveImage = Boolean(trend.viralVideo.thumbnailUrl && !imgFailed);
+  const handleImgError = () => {
+    if (imgSrc && imgSrc.endsWith('/maxresdefault.jpg')) {
+      setImgSrc(imgSrc.replace('/maxresdefault.jpg', '/hqdefault.jpg'));
+      return;
+    }
+    setImgFailed(true);
+  };
+
+  const hasLiveImage = Boolean(imgSrc && !imgFailed);
 
   const renderArtwork = () => {
     switch (trend.id) {
@@ -263,10 +275,10 @@ export const TrendThumbnail: React.FC<TrendThumbnailProps> = ({
       <div className="relative h-full w-full overflow-hidden">
         {hasLiveImage ? (
           <img
-            src={trend.viralVideo.thumbnailUrl}
+            src={imgSrc}
             alt={trend.title}
             loading="lazy"
-            onError={() => setImgFailed(true)}
+            onError={handleImgError}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -281,10 +293,10 @@ export const TrendThumbnail: React.FC<TrendThumbnailProps> = ({
     <div className="w-[112px] h-[66px] rounded-[11px] overflow-hidden border border-line shrink-0 bg-canvas shadow-xs">
       {hasLiveImage ? (
         <img
-          src={trend.viralVideo.thumbnailUrl}
+          src={imgSrc}
           alt={trend.title}
           loading="lazy"
-          onError={() => setImgFailed(true)}
+          onError={handleImgError}
           className="w-full h-full object-cover"
         />
       ) : (
