@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { ArrowUpRight, UserCheck } from 'lucide-react';
 import { AppLang, MediawanCategory, MicroTrend } from '../types';
 import { translateMediawanCategory, UI_COPY } from '../i18n';
@@ -16,6 +16,7 @@ const SECTORS: MediawanCategory[] = [
 const WINDOW_DAYS = 21;
 const OUTER_RADIUS = 180;
 const INNER_RADIUS = 34;
+const SWEEP_ARC_DEG = 72;
 const SECTOR_DEG = 360 / SECTORS.length;
 const SECTOR_PAD_DEG = 7;
 
@@ -120,6 +121,11 @@ export const RadarMap: React.FC<RadarMapProps> = ({
   lang,
 }) => {
   const c = UI_COPY[lang];
+  const uid = useId().replace(/:/g, '');
+  const discGradId = `radar-disc-${uid}`;
+  const coreGlowId = `radar-core-${uid}`;
+  const sweepGradId = `radar-sweep-${uid}`;
+  const beamGradId = `radar-beam-${uid}`;
   const narrow = useIsNarrow();
   const [activeId, setActiveId] = useState<string | null>(null);
   const blips = useMemo(() => layoutBlips(trends), [trends]);
@@ -147,6 +153,8 @@ export const RadarMap: React.FC<RadarMapProps> = ({
   };
 
   const creator = active.trend.viralVideo.creator.handle;
+  const sweepTail = polar(OUTER_RADIUS, -SWEEP_ARC_DEG);
+  const sweepGradEnd = polar(OUTER_RADIUS * 0.78, -SWEEP_ARC_DEG);
 
   return (
     <section
@@ -168,16 +176,74 @@ export const RadarMap: React.FC<RadarMapProps> = ({
             role="group"
             aria-label={c.radarMapTitle}
           >
+            <defs>
+              <radialGradient
+                id={discGradId}
+                cx="0"
+                cy="0"
+                r={OUTER_RADIUS}
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stopColor="#FF6445" stopOpacity="0.28" />
+                <stop offset="28%" stopColor="#FF8A70" stopOpacity="0.18" />
+                <stop offset="62%" stopColor="#B7A6FF" stopOpacity="0.16" />
+                <stop offset="100%" stopColor="#C4B897" stopOpacity="0.06" />
+              </radialGradient>
+              <radialGradient
+                id={coreGlowId}
+                cx="0"
+                cy="0"
+                r="28"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stopColor="#FF6445" stopOpacity="0.42" />
+                <stop offset="55%" stopColor="#FF6445" stopOpacity="0.14" />
+                <stop offset="100%" stopColor="#FF6445" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient
+                id={sweepGradId}
+                gradientUnits="userSpaceOnUse"
+                x1={OUTER_RADIUS * 0.78}
+                y1={0}
+                x2={sweepGradEnd.x}
+                y2={sweepGradEnd.y}
+              >
+                <stop offset="0%" stopColor="#8F78F5" stopOpacity="0.54" />
+                <stop offset="35%" stopColor="#B7A6FF" stopOpacity="0.28" />
+                <stop offset="70%" stopColor="#B7A6FF" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="#B7A6FF" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient
+                id={beamGradId}
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1="0"
+                x2={OUTER_RADIUS}
+                y2="0"
+              >
+                <stop offset="0%" stopColor="#FF6445" stopOpacity="0.95" />
+                <stop offset="45%" stopColor="#8F78F5" stopOpacity="0.95" />
+                <stop offset="100%" stopColor="#B7A6FF" stopOpacity="0.85" />
+              </linearGradient>
+            </defs>
+
             <circle r={OUTER_RADIUS} className="fill-soft" />
+            <circle
+              r={OUTER_RADIUS}
+              fill={`url(#${discGradId})`}
+              aria-hidden="true"
+            />
             <g className="radar-sweep" aria-hidden="true">
               <path
-                d={`M0 0 L${OUTER_RADIUS} 0 A${OUTER_RADIUS} ${OUTER_RADIUS} 0 0 0 ${
-                  polar(OUTER_RADIUS, -55).x
-                } ${polar(OUTER_RADIUS, -55).y} Z`}
-                fill="#B7A6FF"
-                fillOpacity="0.3"
+                d={`M0 0 L${OUTER_RADIUS} 0 A${OUTER_RADIUS} ${OUTER_RADIUS} 0 0 0 ${sweepTail.x} ${sweepTail.y} Z`}
+                fill={`url(#${sweepGradId})`}
               />
-              <line x2={OUTER_RADIUS} stroke="#8F78F5" strokeWidth="2" />
+              <line
+                x2={OUTER_RADIUS}
+                stroke={`url(#${beamGradId})`}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
             </g>
 
             {[7, 14, WINDOW_DAYS].map((days) => (
@@ -225,6 +291,7 @@ export const RadarMap: React.FC<RadarMapProps> = ({
                 {unit}
               </text>
             ))}
+            <circle r="28" fill={`url(#${coreGlowId})`} aria-hidden="true" />
             <circle r="7" fill="#FF6445" stroke="#1D1D1F" strokeWidth="2" />
 
             {painted.map((blip) => {
